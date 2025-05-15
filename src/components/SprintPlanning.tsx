@@ -89,22 +89,27 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     setSprintPlan(newSprintPlan);
   };
 
-  // Fix: Update the input handling to properly update the points
+  // Fixed: Update the input handling to properly update the points
   const handlePointsChange = (index: number, value: string) => {
     const points = parseInt(value) || 0;
     
-    const updatedPlan = [...sprintPlan];
-    updatedPlan[index] = {
-      ...updatedPlan[index],
-      totalPoints: points
-    };
-    
-    setSprintPlan(updatedPlan);
+    setSprintPlan(prevPlan => {
+      // Create a deep copy of the previous plan
+      const newPlan = prevPlan.map(sprint => ({ ...sprint }));
+      
+      // Update the totalPoints for the specific sprint
+      newPlan[index] = {
+        ...newPlan[index],
+        totalPoints: points
+      };
+      
+      return newPlan;
+    });
     
     // Add a toast notification to confirm the update
     toast({
       title: "Points Updated",
-      description: `Sprint ${updatedPlan[index].sprintNumber} planned points set to ${points}`,
+      description: `Sprint ${sprintPlan[index].sprintNumber} planned points set to ${points}`,
     });
   };
 
@@ -175,10 +180,6 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                         value={sprint.totalPoints}
                         onChange={(e) => handlePointsChange(index, e.target.value)}
                         className="w-20"
-                        onBlur={(e) => {
-                          // Additional handler to ensure value is saved on blur
-                          handlePointsChange(index, e.target.value);
-                        }}
                       />
                     </TableCell>
                     <TableCell>
