@@ -12,6 +12,7 @@ export interface TeamMemberData {
   name: string;
   weeklyCapacity: number;
   assignedStoryPoints: Record<string, number>;
+  sprintStoryPoints?: Record<number, number>; // Points assigned per sprint
 }
 
 interface TeamMemberProps {
@@ -33,6 +34,14 @@ export default function TeamMember({
   const [tempName, setTempName] = useState(member.name);
   const [tempWeeklyCapacity, setTempWeeklyCapacity] = useState(member.weeklyCapacity.toString());
   const [isOpen, setIsOpen] = useState(false);
+
+  // Initialize sprint story points if not already present
+  if (!member.sprintStoryPoints) {
+    member.sprintStoryPoints = {};
+    for (let i = 1; i <= sprintConfig.sprints; i++) {
+      member.sprintStoryPoints[i] = 0;
+    }
+  }
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTempName(e.target.value);
@@ -68,6 +77,17 @@ export default function TeamMember({
     onChange({
       ...member,
       assignedStoryPoints: updatedPoints,
+    });
+  };
+
+  const handleSprintPointsChange = (e: React.ChangeEvent<HTMLInputElement>, sprintNumber: number) => {
+    const value = Math.max(0, parseInt(e.target.value) || 0);
+    const updatedSprintPoints = { ...(member.sprintStoryPoints || {}) };
+    updatedSprintPoints[sprintNumber] = value;
+
+    onChange({
+      ...member,
+      sprintStoryPoints: updatedSprintPoints,
     });
   };
 
@@ -160,8 +180,30 @@ export default function TeamMember({
               </div>
             )}
 
+            {/* Sprint-specific story points assignment */}
             <div className="border rounded-md p-3">
-              <h4 className="font-medium text-sm mb-2">Story Points Assignment</h4>
+              <h4 className="font-medium text-sm mb-2">Story Points per Sprint</h4>
+              <div className="flex flex-wrap gap-3">
+                {Array.from({ length: sprintConfig.sprints }, (_, i) => i + 1).map((sprintNumber) => (
+                  <div key={`sprint-${sprintNumber}`} className="flex items-center space-x-2">
+                    <Label htmlFor={`sprint-${sprintNumber}-${member.id}`} className="whitespace-nowrap">
+                      Sprint {sprintNumber}:
+                    </Label>
+                    <Input
+                      id={`sprint-${sprintNumber}-${member.id}`}
+                      type="number"
+                      min={0}
+                      value={(member.sprintStoryPoints?.[sprintNumber] || 0)}
+                      onChange={(e) => handleSprintPointsChange(e, sprintNumber)}
+                      className="h-8 w-16"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border rounded-md p-3">
+              <h4 className="font-medium text-sm mb-2">Story Points by Task Size</h4>
               <div className="flex flex-wrap gap-3">
                 {Object.keys(storyPointMappings).map((pointsStr) => {
                   const points = parseInt(pointsStr);
