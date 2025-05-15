@@ -6,29 +6,37 @@ import StoryPointInfo from "@/components/StoryPointInfo";
 import { TeamMemberData } from "@/components/TeamMember";
 import TeamCapacitySummary from "@/components/TeamCapacitySummary";
 import TeamCapacityChart from "@/components/TeamCapacityChart";
+import { Separator } from "@/components/ui/separator";
 
 const Index = () => {
   const [sprintConfig, setSprintConfig] = useState({
     sprints: 1,
     sprintLength: 2,
+    startDate: null as Date | null,
+    dueDate: null as Date | null,
   });
   
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
 
   // Story point to hours mapping
-  const storyPointMappings: Record<number, number> = {
+  const [storyPointMappings, setStoryPointMappings] = useState<Record<number, number>>({
     1: 2,   // 1 point = 2 hours
     2: 4,   // 2 points = 4 hours
     3: 8,   // 3 points = 8 hours
     5: 16,  // 5 points = 16 hours
-  };
+    8: 32,  // 8 points = 32 hours
+  });
 
-  const handleConfigChange = (sprints: number, sprintLength: number) => {
-    setSprintConfig({ sprints, sprintLength });
+  const handleConfigChange = (sprints: number, sprintLength: number, startDate: Date | null, dueDate: Date | null) => {
+    setSprintConfig({ sprints, sprintLength, startDate, dueDate });
   };
 
   const handleTeamMembersChange = (updatedMembers: TeamMemberData[]) => {
     setTeamMembers(updatedMembers);
+  };
+
+  const handleStoryPointMappingsChange = (updatedMappings: Record<number, number>) => {
+    setStoryPointMappings(updatedMappings);
   };
 
   return (
@@ -43,17 +51,22 @@ const Index = () => {
       </header>
       
       <main className="container mx-auto py-8 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="md:col-span-2">
             <SprintConfig onConfigChange={handleConfigChange} />
           </div>
           
           <div className="md:col-span-1">
-            <StoryPointInfo storyPointMappings={storyPointMappings} />
+            <StoryPointInfo 
+              storyPointMappings={storyPointMappings} 
+              onMappingsChange={handleStoryPointMappingsChange}
+            />
           </div>
         </div>
         
-        <div className="mt-8">
+        <Separator className="my-8" />
+        
+        <div className="mb-8">
           <TeamMembersList 
             storyPointMappings={storyPointMappings} 
             sprintConfig={sprintConfig} 
@@ -61,21 +74,27 @@ const Index = () => {
           />
         </div>
         
-        <div className="mt-8">
-          <TeamCapacitySummary 
-            teamMembers={teamMembers}
-            storyPointMappings={storyPointMappings}
-            sprintConfig={sprintConfig}
-          />
-        </div>
-
-        <div className="mt-8">
-          <TeamCapacityChart 
-            teamMembers={teamMembers}
-            storyPointMappings={storyPointMappings}
-            sprintConfig={sprintConfig}
-          />
-        </div>
+        {teamMembers.length > 0 && (
+          <>
+            <Separator className="my-8" />
+            
+            <div className="mb-8">
+              <TeamCapacitySummary 
+                teamMembers={teamMembers}
+                storyPointMappings={storyPointMappings}
+                sprintConfig={sprintConfig}
+              />
+            </div>
+            
+            <div className="mb-8">
+              <TeamCapacityChart 
+                teamMembers={teamMembers}
+                storyPointMappings={storyPointMappings}
+                sprintConfig={sprintConfig}
+              />
+            </div>
+          </>
+        )}
       </main>
       
       <footer className="bg-white border-t py-6">

@@ -14,7 +14,12 @@ import {
 interface TeamCapacitySummaryProps {
   teamMembers: TeamMemberData[];
   storyPointMappings: Record<number, number>;
-  sprintConfig: { sprints: number; sprintLength: number };
+  sprintConfig: { 
+    sprints: number; 
+    sprintLength: number;
+    startDate: Date | null;
+    dueDate: Date | null;
+  };
 }
 
 export default function TeamCapacitySummary({
@@ -40,11 +45,15 @@ export default function TeamCapacitySummary({
     
     const capacityRemaining = totalSprintCapacity - memberHoursRequired;
     
-    let statusColor = "bg-capacity-high";
-    if (capacityRemaining < 20 && capacityRemaining >= 5) {
-      statusColor = "bg-capacity-medium";
-    } else if (capacityRemaining < 5) {
-      statusColor = "bg-capacity-low";
+    let statusColor = "bg-green-500"; // Good: Under 60% utilization
+    const utilizationPercentage = totalSprintCapacity > 0 
+      ? Math.min(100, Math.round((memberHoursRequired / totalSprintCapacity) * 100))
+      : 0;
+      
+    if (utilizationPercentage >= 85) {
+      statusColor = "bg-red-500"; // Overloaded: >85% utilization
+    } else if (utilizationPercentage >= 60) {
+      statusColor = "bg-amber-500"; // Warning: 60%-85% utilization
     }
     
     return {
@@ -54,9 +63,7 @@ export default function TeamCapacitySummary({
       hoursRequired: memberHoursRequired,
       capacityRemaining,
       statusColor,
-      utilizationPercentage: totalSprintCapacity > 0 
-        ? Math.min(100, Math.round((memberHoursRequired / totalSprintCapacity) * 100))
-        : 0
+      utilizationPercentage
     };
   });
   
@@ -65,11 +72,11 @@ export default function TeamCapacitySummary({
     ? Math.min(100, Math.round((totalHoursRequired / totalTeamCapacity) * 100))
     : 0;
   
-  let teamStatusColor = "bg-capacity-high";
-  if (teamCapacityRemaining < 40 && teamCapacityRemaining >= 10) {
-    teamStatusColor = "bg-capacity-medium";
-  } else if (teamCapacityRemaining < 10) {
-    teamStatusColor = "bg-capacity-low";
+  let teamStatusColor = "bg-green-500";
+  if (teamUtilizationPercentage >= 85) {
+    teamStatusColor = "bg-red-500";
+  } else if (teamUtilizationPercentage >= 60) {
+    teamStatusColor = "bg-amber-500";
   }
 
   if (teamMembers.length === 0) {
@@ -77,7 +84,7 @@ export default function TeamCapacitySummary({
   }
 
   return (
-    <Card>
+    <Card className="mb-8">
       <CardHeader>
         <CardTitle className="text-xl font-bold text-capacity-default">
           Team Capacity Summary
@@ -99,7 +106,7 @@ export default function TeamCapacitySummary({
             </TableHeader>
             <TableBody>
               {memberSummaries.map((summary) => (
-                <TableRow key={summary.name}>
+                <TableRow key={summary.name} className="hover:bg-muted/20">
                   <TableCell className="font-medium">{summary.name}</TableCell>
                   <TableCell className="text-right">{summary.weeklyCapacity}</TableCell>
                   <TableCell className="text-right">{summary.totalCapacity}</TableCell>
@@ -110,9 +117,9 @@ export default function TeamCapacitySummary({
                     <div className="flex items-center space-x-2">
                       <div className={`h-3 w-3 rounded-full ${summary.statusColor}`}></div>
                       <span className="text-xs">
-                        {summary.statusColor.includes("high") && "Good"}
-                        {summary.statusColor.includes("medium") && "Warning"}
-                        {summary.statusColor.includes("low") && "Overloaded"}
+                        {summary.statusColor.includes("green") && "Good"}
+                        {summary.statusColor.includes("amber") && "Warning"}
+                        {summary.statusColor.includes("red") && "Overloaded"}
                       </span>
                     </div>
                   </TableCell>
@@ -130,9 +137,9 @@ export default function TeamCapacitySummary({
                   <div className="flex items-center space-x-2">
                     <div className={`h-3 w-3 rounded-full ${teamStatusColor}`}></div>
                     <span className="text-xs">
-                      {teamStatusColor.includes("high") && "Good"}
-                      {teamStatusColor.includes("medium") && "Warning"}
-                      {teamStatusColor.includes("low") && "Overloaded"}
+                      {teamStatusColor.includes("green") && "Good"}
+                      {teamStatusColor.includes("amber") && "Warning"}
+                      {teamStatusColor.includes("red") && "Overloaded"}
                     </span>
                   </div>
                 </TableCell>

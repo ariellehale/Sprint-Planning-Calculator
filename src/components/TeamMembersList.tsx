@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamMember, { TeamMemberData } from "./TeamMember";
@@ -7,7 +8,12 @@ import { v4 as uuidv4 } from "uuid";
 
 interface TeamMembersListProps {
   storyPointMappings: Record<number, number>;
-  sprintConfig: { sprints: number; sprintLength: number };
+  sprintConfig: { 
+    sprints: number; 
+    sprintLength: number;
+    startDate: Date | null;
+    dueDate: Date | null;
+  };
   onTeamMembersChange: (members: TeamMemberData[]) => void;
 }
 

@@ -1,27 +1,63 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { CalendarDays } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface SprintConfigProps {
-  onConfigChange: (sprints: number, sprintLength: number) => void;
+  onConfigChange: (sprints: number, sprintLength: number, startDate: Date | null, dueDate: Date | null) => void;
 }
 
 export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
   const [sprints, setSprints] = useState<number>(1);
   const [sprintLength, setSprintLength] = useState<number>(2);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [isCalculating, setIsCalculating] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Calculate sprints when start and end dates are set
+    if (startDate && dueDate && dueDate > startDate && !isCalculating) {
+      setIsCalculating(true);
+      
+      // Calculate total days between start and due date
+      const totalDays = differenceInDays(dueDate, startDate);
+      
+      // Calculate number of sprints based on sprint length (in weeks)
+      const calculatedSprints = Math.ceil(totalDays / (sprintLength * 7));
+      
+      // Update sprints
+      if (calculatedSprints > 0 && calculatedSprints !== sprints) {
+        setSprints(calculatedSprints);
+      }
+      
+      setIsCalculating(false);
+    }
+  }, [startDate, dueDate, sprintLength]);
+
+  // When values change, notify parent component
+  useEffect(() => {
+    onConfigChange(sprints, sprintLength, startDate, dueDate);
+  }, [sprints, sprintLength, startDate, dueDate, onConfigChange]);
 
   const handleSprintsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.max(1, parseInt(e.target.value) || 1);
     setSprints(value);
-    onConfigChange(value, sprintLength);
   };
 
   const handleSprintLengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.max(1, parseInt(e.target.value) || 1);
     setSprintLength(value);
-    onConfigChange(sprints, value);
   };
 
   return (
@@ -32,7 +68,7 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="sprints">Number of Sprints</Label>
             <Input
@@ -43,6 +79,7 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
               onChange={handleSprintsChange}
             />
           </div>
+          
           <div className="space-y-2">
             <Label htmlFor="sprintLength">Sprint Length (weeks)</Label>
             <Input
@@ -52,6 +89,63 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
               value={sprintLength}
               onChange={handleSprintLengthChange}
             />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Sprint Start Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="startDate"
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "PPP") : <span>Select date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Project Due Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="dueDate"
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dueDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {dueDate ? format(dueDate, "PPP") : <span>Select date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={dueDate}
+                  onSelect={setDueDate}
+                  disabled={(date) => startDate ? date < startDate : false}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </CardContent>
