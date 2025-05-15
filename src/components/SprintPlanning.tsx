@@ -84,9 +84,14 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     setSprintPlan(newSprintPlan);
   };
 
-  const handlePointsChange = (index: number, points: number) => {
+  // Fix: Create a proper handler for points change that updates the state correctly
+  const handlePointsChange = (index: number, value: string) => {
+    const points = parseInt(value) || 0;
     const updatedPlan = [...sprintPlan];
-    updatedPlan[index].totalPoints = points;
+    updatedPlan[index] = {
+      ...updatedPlan[index],
+      totalPoints: points
+    };
     setSprintPlan(updatedPlan);
   };
 
@@ -155,7 +160,7 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                         type="number"
                         min={0}
                         value={sprint.totalPoints}
-                        onChange={(e) => handlePointsChange(index, parseInt(e.target.value) || 0)}
+                        onChange={(e) => handlePointsChange(index, e.target.value)}
                         className="w-20"
                       />
                     </TableCell>

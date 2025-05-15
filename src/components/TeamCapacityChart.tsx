@@ -25,21 +25,32 @@ export default function TeamCapacityChart({
   storyPointMappings,
   sprintConfig,
 }: TeamCapacityChartProps) {
+  // If there are no team members, don't render the chart
   if (teamMembers.length === 0) {
     return null;
   }
   
-  // Generate sprint dates
+  // Generate sprint dates - improved to handle null dates
   const generateSprintDates = () => {
     if (!sprintConfig.startDate) return [];
     
     const sprintDates = [];
     let currentDate = new Date(sprintConfig.startDate);
     
+    // Ensure start date is a Monday
+    const dayOfWeek = currentDate.getDay();
+    if (dayOfWeek !== 1) { // 1 is Monday
+      // If not Monday, move to the next Monday
+      const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+      currentDate = new Date(currentDate.setDate(currentDate.getDate() + daysUntilMonday));
+    }
+    
     for (let i = 0; i < sprintConfig.sprints; i++) {
       sprintDates.push(new Date(currentDate));
       // Add sprint length (in weeks) to the current date
-      currentDate.setDate(currentDate.getDate() + (sprintConfig.sprintLength * 7));
+      const newDate = new Date(currentDate);
+      newDate.setDate(newDate.getDate() + (sprintConfig.sprintLength * 7));
+      currentDate = newDate;
     }
     
     return sprintDates;
@@ -56,60 +67,41 @@ export default function TeamCapacityChart({
   const prepareChartData = () => {
     const chartData = [];
     
+    // Calculate basic capacity values even if we don't have sprint dates
+    let totalTeamCapacity = 0;
+    let totalHoursRequired = 0;
+    
+    teamMembers.forEach(member => {
+      totalTeamCapacity += member.weeklyCapacity * sprintConfig.sprintLength;
+      
+      Object.entries(member.assignedStoryPoints).forEach(([pointsStr, count]) => {
+        const points = parseInt(pointsStr);
+        const hours = storyPointMappings[points] || 0;
+        totalHoursRequired += (count * hours);
+      });
+    });
+    
+    // Distribute the total across the number of sprints
+    const hoursRequiredPerSprint = totalHoursRequired / Math.max(1, sprintConfig.sprints);
+    
     // If we have sprint dates, use them for the chart
     if (sprintDates.length > 0) {
       for (let i = 0; i < sprintConfig.sprints; i++) {
-        let totalCapacity = 0;
-        let totalHoursRequired = 0;
-        
-        teamMembers.forEach(member => {
-          const sprintCapacity = member.weeklyCapacity * sprintConfig.sprintLength;
-          totalCapacity += sprintCapacity;
-          
-          let hoursRequired = 0;
-          Object.entries(member.assignedStoryPoints).forEach(([pointsStr, count]) => {
-            const points = parseInt(pointsStr);
-            const hours = storyPointMappings[points] || 0;
-            // Distribute story points evenly across sprints for visualization
-            hoursRequired += (count * hours) / sprintConfig.sprints;
-          });
-          
-          totalHoursRequired += hoursRequired;
-        });
-        
         chartData.push({
           name: `Sprint ${i + 1} (${formatSprintDate(sprintDates[i])})`,
-          totalCapacity,
-          hoursRequired: totalHoursRequired,
-          capacityRemaining: totalCapacity - totalHoursRequired
+          totalCapacity: totalTeamCapacity,
+          hoursRequired: hoursRequiredPerSprint,
+          capacityRemaining: totalTeamCapacity - hoursRequiredPerSprint
         });
       }
     } else {
       // Fallback if no dates are provided
       for (let i = 0; i < sprintConfig.sprints; i++) {
-        let totalCapacity = 0;
-        let totalHoursRequired = 0;
-        
-        teamMembers.forEach(member => {
-          const sprintCapacity = member.weeklyCapacity * sprintConfig.sprintLength;
-          totalCapacity += sprintCapacity;
-          
-          let hoursRequired = 0;
-          Object.entries(member.assignedStoryPoints).forEach(([pointsStr, count]) => {
-            const points = parseInt(pointsStr);
-            const hours = storyPointMappings[points] || 0;
-            // Distribute story points evenly across sprints for visualization
-            hoursRequired += (count * hours) / sprintConfig.sprints;
-          });
-          
-          totalHoursRequired += hoursRequired;
-        });
-        
         chartData.push({
           name: `Sprint ${i + 1}`,
-          totalCapacity,
-          hoursRequired: totalHoursRequired,
-          capacityRemaining: totalCapacity - totalHoursRequired
+          totalCapacity: totalTeamCapacity,
+          hoursRequired: hoursRequiredPerSprint,
+          capacityRemaining: totalTeamCapacity - hoursRequiredPerSprint
         });
       }
     }
@@ -118,6 +110,11 @@ export default function TeamCapacityChart({
   };
   
   const chartData = prepareChartData();
+  
+  // If we don't have any chart data, don't render
+  if (chartData.length === 0) {
+    return null;
+  }
   
   const chartConfig = {
     capacity: { label: "Total Capacity", color: "#9b87f5" },

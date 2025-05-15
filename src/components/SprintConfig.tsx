@@ -25,8 +25,8 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
 
+  // Fixed: Added proper dependency array and prevent infinite loop
   useEffect(() => {
-    // Calculate sprints when start and end dates are set
     if (startDate && dueDate && dueDate > startDate && !isCalculating) {
       setIsCalculating(true);
       
@@ -43,9 +43,9 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
       
       setIsCalculating(false);
     }
-  }, [startDate, dueDate, sprintLength]);
+  }, [startDate, dueDate, sprintLength, sprints, isCalculating]);
 
-  // When values change, notify parent component
+  // Fixed: Added proper dependency array and prevent infinite loop
   useEffect(() => {
     onConfigChange(sprints, sprintLength, startDate, dueDate);
   }, [sprints, sprintLength, startDate, dueDate, onConfigChange]);
@@ -107,13 +107,12 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
                   {startDate ? format(startDate, "PPP") : <span>Select date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={startDate}
                   onSelect={setStartDate}
                   initialFocus
-                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
@@ -135,14 +134,13 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
                   {dueDate ? format(dueDate, "PPP") : <span>Select date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={dueDate}
                   onSelect={setDueDate}
                   disabled={(date) => startDate ? date < startDate : false}
                   initialFocus
-                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
