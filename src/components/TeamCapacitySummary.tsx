@@ -1,6 +1,5 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TeamMemberData } from "./TeamMember";
 import {
   Table,
   TableBody,
@@ -10,6 +9,7 @@ import {
   TableRow,
   TableFooter,
 } from "@/components/ui/table";
+import { TeamMemberData } from "./types/TeamMemberTypes";
 
 interface TeamCapacitySummaryProps {
   teamMembers: TeamMemberData[];
@@ -38,7 +38,7 @@ export default function TeamCapacitySummary({
     totalTeamCapacity += totalSprintCapacity;
     
     // Calculate total points from sprint assignments
-    const totalAssignedPoints = Object.values(member.sprintStoryPoints || {}).reduce((sum, points) => sum + points, 0);
+    const totalAssignedPoints = Object.values(member.sprintStoryPoints || {}).reduce((sum: number, points: number) => sum + points, 0);
     const memberHoursRequired = totalAssignedPoints * velocity;
     totalHoursRequired += memberHoursRequired;
     
@@ -70,7 +70,7 @@ export default function TeamCapacitySummary({
   });
   
   const totalTeamCapacityPoints = Math.floor(totalTeamCapacity / velocity);
-  const totalAssignedPoints = memberSummaries.reduce((sum, member) => sum + member.assignedPoints, 0);
+  const totalAssignedPoints = memberSummaries.reduce((sum: number, member: any) => sum + member.assignedPoints, 0);
   const teamCapacityRemaining = totalTeamCapacityPoints - totalAssignedPoints;
   const teamUtilizationPercentage = totalTeamCapacityPoints > 0 
     ? Math.min(100, Math.round((totalAssignedPoints / totalTeamCapacityPoints) * 100))

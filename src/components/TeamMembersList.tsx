@@ -1,10 +1,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import TeamMember, { TeamMemberData } from "./TeamMember";
+import TeamMember from "./TeamMember";
 import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { TeamMemberData } from "./types/TeamMemberTypes";
 
 interface TeamMembersListProps {
   storyPointMappings: Record<number, number>;

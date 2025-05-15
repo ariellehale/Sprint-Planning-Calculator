@@ -36,14 +36,6 @@ export default function TeamMember({
     }
   }, [isNew]);
 
-  // Initialize sprint story points if not already present
-  if (!member.sprintStoryPoints) {
-    member.sprintStoryPoints = {};
-    for (let i = 1; i <= sprintConfig.sprints; i++) {
-      member.sprintStoryPoints[i] = 0;
-    }
-  }
-
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTempName(e.target.value);
   };

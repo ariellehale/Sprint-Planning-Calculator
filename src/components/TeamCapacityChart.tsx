@@ -1,6 +1,4 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TeamMemberData } from "./TeamMember";
 import {
   ChartContainer,
   ChartLegend,
@@ -9,6 +7,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { TeamMemberData } from "./types/TeamMemberTypes";
 
 interface TeamCapacityChartProps {
   teamMembers: TeamMemberData[];

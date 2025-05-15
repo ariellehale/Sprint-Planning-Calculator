@@ -3,10 +3,10 @@ import { useState } from "react";
 import SprintConfig from "@/components/SprintConfig";
 import TeamMembersList from "@/components/TeamMembersList";
 import StoryPointInfo from "@/components/StoryPointInfo";
-import { TeamMemberData } from "@/components/TeamMember";
 import TeamCapacitySummary from "@/components/TeamCapacitySummary";
 import SprintPlanning from "@/components/SprintPlanning";
 import { Separator } from "@/components/ui/separator";
+import { TeamMemberData } from "@/components/types/TeamMemberTypes";
 
 const Index = () => {
   const [sprintConfig, setSprintConfig] = useState({

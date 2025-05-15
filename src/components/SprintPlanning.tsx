@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -12,7 +13,7 @@ import {
   Input
 } from "@/components/ui/input";
 import { format, addDays } from "date-fns";
-import { TeamMemberData } from "./TeamMember";
+import { TeamMemberData } from "./types/TeamMemberTypes";
 import { useToast } from "@/hooks/use-toast";
 
 interface SprintPlanningProps {
