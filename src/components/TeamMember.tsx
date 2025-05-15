@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Check, Minimize, Expand, X } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export interface TeamMemberData {
@@ -59,6 +59,9 @@ export default function TeamMember({
         name: tempName || "Team Member",
         weeklyCapacity: Math.max(0, parseInt(tempWeeklyCapacity) || 0),
       });
+    } else {
+      // Open the collapsible when editing
+      setIsOpen(true);
     }
     setIsEditing(!isEditing);
   };
@@ -67,17 +70,6 @@ export default function TeamMember({
     setTempName(member.name);
     setTempWeeklyCapacity(member.weeklyCapacity.toString());
     setIsEditing(false);
-  };
-
-  const handleStoryPointChange = (e: React.ChangeEvent<HTMLInputElement>, points: number) => {
-    const value = Math.max(0, parseInt(e.target.value) || 0);
-    const updatedPoints = { ...member.assignedStoryPoints };
-    updatedPoints[points.toString()] = value;
-    
-    onChange({
-      ...member,
-      assignedStoryPoints: updatedPoints,
-    });
   };
 
   const handleSprintPointsChange = (e: React.ChangeEvent<HTMLInputElement>, sprintNumber: number) => {
@@ -94,15 +86,17 @@ export default function TeamMember({
   // Calculate capacity metrics
   const sprintCapacity = member.weeklyCapacity * sprintConfig.sprintLength;
   const totalSprintCapacity = sprintCapacity * sprintConfig.sprints;
+  const velocity = sprintConfig.velocity || 4; // Default to 4 hours per point if not provided
   
-  let totalHoursRequired = 0;
-  Object.entries(member.assignedStoryPoints).forEach(([pointsStr, count]) => {
-    const points = parseInt(pointsStr);
-    const hours = storyPointMappings[points] || 0;
-    totalHoursRequired += count * hours;
-  });
+  // Calculate points from hours
+  const weeklyCapacityPoints = Math.floor(member.weeklyCapacity / velocity);
+  const sprintCapacityPoints = Math.floor(sprintCapacity / velocity);
+  const totalCapacityPoints = Math.floor(totalSprintCapacity / velocity);
   
-  const capacityRemaining = totalSprintCapacity - totalHoursRequired;
+  // Calculate total points from sprint assignments
+  const totalAssignedPoints = Object.values(member.sprintStoryPoints || {}).reduce((sum, points) => sum + points, 0);
+  
+  const capacityRemaining = totalSprintCapacity - (totalAssignedPoints * velocity);
   
   let statusColor = "bg-capacity-high";
   if (capacityRemaining < 20 && capacityRemaining >= 5) {
@@ -117,14 +111,17 @@ export default function TeamMember({
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <CollapsibleTrigger asChild>
-                <Button size="sm" variant="ghost" className="p-0 mr-2">
-                  {isOpen ? 
-                    <ChevronUp className="h-5 w-5 text-pink-500" /> : 
-                    <ChevronDown className="h-5 w-5 text-pink-500" />
-                  }
-                </Button>
-              </CollapsibleTrigger>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => setIsOpen(!isOpen)} 
+                className="p-0 mr-2 text-pink-500 hover:text-pink-600 hover:bg-pink-50"
+              >
+                {isOpen ? 
+                  <Minimize className="h-5 w-5" /> : 
+                  <Expand className="h-5 w-5" />
+                }
+              </Button>
               <h3 className="font-bold text-lg">{member.name}</h3>
             </div>
             <div className="flex space-x-2">
@@ -179,9 +176,9 @@ export default function TeamMember({
               </div>
             ) : (
               <div className="text-muted-foreground space-y-1">
-                <p>Weekly Capacity: {member.weeklyCapacity} hours</p>
-                <p>Sprint Capacity: {sprintCapacity} hours</p>
-                <p>Total Capacity: {totalSprintCapacity} hours</p>
+                <p>Weekly Capacity: {member.weeklyCapacity} hours / {weeklyCapacityPoints} points</p>
+                <p>Sprint Capacity: {sprintCapacity} hours / {sprintCapacityPoints} points</p>
+                <p>Total Capacity: {totalSprintCapacity} hours / {totalCapacityPoints} points</p>
               </div>
             )}
 
@@ -207,38 +204,14 @@ export default function TeamMember({
               </div>
             </div>
 
-            <div className="border rounded-md p-3">
-              <h4 className="font-medium text-sm mb-2">Story Points by Task Size</h4>
-              <div className="flex flex-wrap gap-3">
-                {Object.keys(storyPointMappings).map((pointsStr) => {
-                  const points = parseInt(pointsStr);
-                  return (
-                    <div key={points} className="flex items-center space-x-2">
-                      <Label htmlFor={`sp-${points}-${member.id}`} className="whitespace-nowrap">
-                        {points} {points === 1 ? "point" : "points"}:
-                      </Label>
-                      <Input
-                        id={`sp-${points}-${member.id}`}
-                        type="number"
-                        min={0}
-                        value={member.assignedStoryPoints[points] || 0}
-                        onChange={(e) => handleStoryPointChange(e, points)}
-                        className="h-8 w-16"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
             <div className="border rounded-md p-3 space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Total Sprint Capacity:</span>
-                <span className="font-medium">{totalSprintCapacity} hours</span>
+                <span className="font-medium">{totalSprintCapacity} hours / {totalCapacityPoints} points</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Hours Required:</span>
-                <span className="font-medium">{totalHoursRequired} hours</span>
+                <span>Assigned Story Points:</span>
+                <span className="font-medium">{totalAssignedPoints} points ({totalAssignedPoints * velocity} hours)</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Capacity Remaining:</span>
@@ -259,3 +232,4 @@ export default function TeamMember({
     </Card>
   );
 }
+

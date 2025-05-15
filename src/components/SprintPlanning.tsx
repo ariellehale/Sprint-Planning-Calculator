@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -71,6 +70,13 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     const teamCapacity = calculateTeamCapacity();
     const teamCapacityPoints = Math.floor(teamCapacity / sprintConfig.velocity);
 
+    // Calculate auto-planned points from team member sprint assignments
+    const calculateAutoPlannedPoints = (sprintNumber: number) => {
+      return teamMembers.reduce((total, member) => {
+        return total + (member.sprintStoryPoints?.[sprintNumber] || 0);
+      }, 0);
+    };
+
     for (let i = 0; i < sprintConfig.sprints; i++) {
       // Sprint ends on Friday of the last week
       const sprintEndDate = addDays(
@@ -78,14 +84,22 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
         (sprintConfig.sprintLength * 7) - 3 // End on Friday (remove weekend days)
       );
 
-      // Preserve existing points if available when regenerating the plan
-      const existingSprint = sprintPlan.find(s => s.sprintNumber === (i + 1));
+      const sprintNumber = i + 1;
+      
+      // Auto-calculate points from team member assignments
+      const autoPlannedPoints = calculateAutoPlannedPoints(sprintNumber);
+
+      // Get existing sprint data if available when regenerating the plan
+      const existingSprint = sprintPlan.find(s => s.sprintNumber === sprintNumber);
+      
+      // Use auto-calculated points as default, but keep existing points if they were manually set
+      const totalPoints = existingSprint ? existingSprint.totalPoints : autoPlannedPoints;
       
       newSprintPlan.push({
-        sprintNumber: i + 1,
+        sprintNumber,
         startDate: new Date(currentStartDate),
         endDate: new Date(sprintEndDate),
-        totalPoints: existingSprint ? existingSprint.totalPoints : 0,
+        totalPoints,
         teamCapacity,
         teamCapacityPoints,
         adjustedCapacityPoints: teamCapacityPoints, // Initially same as teamCapacityPoints
@@ -221,6 +235,11 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                 } else if (utilizationPercentage >= 60) {
                   statusColor = "bg-amber-500"; // Warning: 60%-85% utilization
                 }
+
+                // Calculate auto-planned points from team member assignments for this sprint
+                const autoPlannedPoints = teamMembers.reduce((total, member) => {
+                  return total + (member.sprintStoryPoints?.[sprint.sprintNumber] || 0);
+                }, 0);
                 
                 return (
                   <TableRow key={sprint.sprintNumber}>
@@ -248,6 +267,11 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                         onChange={(e) => handlePointsChange(index, e)}
                         className="w-20"
                       />
+                      {autoPlannedPoints !== sprint.totalPoints && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Team assigned: {autoPlannedPoints}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className={sprint.remainingPoints < 5 ? "text-red-500 font-medium" : ""}>
                       {sprint.remainingPoints}
