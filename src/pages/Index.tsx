@@ -5,7 +5,6 @@ import TeamMembersList from "@/components/TeamMembersList";
 import StoryPointInfo from "@/components/StoryPointInfo";
 import { TeamMemberData } from "@/components/TeamMember";
 import TeamCapacitySummary from "@/components/TeamCapacitySummary";
-import TeamCapacityChart from "@/components/TeamCapacityChart";
 import SprintPlanning from "@/components/SprintPlanning";
 import { Separator } from "@/components/ui/separator";
 
@@ -56,9 +55,9 @@ const Index = () => {
           <div className="md:col-span-2">
             <SprintConfig onConfigChange={handleConfigChange} />
             
-            {sprintConfig.startDate && sprintConfig.sprints > 0 && (
+            {teamMembers.length > 0 && (
               <div className="mt-6">
-                <TeamCapacityChart 
+                <TeamCapacitySummary 
                   teamMembers={teamMembers}
                   storyPointMappings={storyPointMappings}
                   sprintConfig={sprintConfig}
@@ -76,16 +75,6 @@ const Index = () => {
         </div>
         
         <Separator className="my-8" />
-        
-        {teamMembers.length > 0 && (
-          <div className="mb-8">
-            <TeamCapacitySummary 
-              teamMembers={teamMembers}
-              storyPointMappings={storyPointMappings}
-              sprintConfig={sprintConfig}
-            />
-          </div>
-        )}
         
         <div className="mb-8">
           <SprintPlanning 

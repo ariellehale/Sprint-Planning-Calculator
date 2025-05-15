@@ -9,7 +9,13 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format, addDays } from "date-fns";
 import { TeamMemberData } from "./TeamMember";
 import { useToast } from "@/hooks/use-toast";
@@ -89,27 +95,26 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     setSprintPlan(newSprintPlan);
   };
 
-  // Fixed: Update the input handling to properly update the points
+  // Fixed: Using Select component instead of Input for more reliability
   const handlePointsChange = (index: number, value: string) => {
     const points = parseInt(value) || 0;
     
-    setSprintPlan(prevPlan => {
-      // Create a deep copy of the previous plan
-      const newPlan = prevPlan.map(sprint => ({ ...sprint }));
-      
-      // Update the totalPoints for the specific sprint
-      newPlan[index] = {
-        ...newPlan[index],
-        totalPoints: points
-      };
-      
-      return newPlan;
-    });
+    // Create a new array with all sprints
+    const newPlan = [...sprintPlan];
+    
+    // Update the specific sprint with new points
+    newPlan[index] = {
+      ...newPlan[index],
+      totalPoints: points
+    };
+    
+    // Update the state with the new array
+    setSprintPlan(newPlan);
     
     // Add a toast notification to confirm the update
     toast({
       title: "Points Updated",
-      description: `Sprint ${sprintPlan[index].sprintNumber} planned points set to ${points}`,
+      description: `Sprint ${newPlan[index].sprintNumber} planned points set to ${points}`,
     });
   };
 
@@ -129,6 +134,9 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
       </Card>
     );
   }
+
+  // Generate point options for the select (0-100)
+  const pointOptions = Array.from({ length: 101 }, (_, i) => i);
 
   return (
     <Card className="mb-8">
@@ -174,13 +182,21 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                     </TableCell>
                     <TableCell>{sprint.teamCapacity}</TableCell>
                     <TableCell>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={sprint.totalPoints}
-                        onChange={(e) => handlePointsChange(index, e.target.value)}
-                        className="w-20"
-                      />
+                      <Select
+                        value={sprint.totalPoints.toString()}
+                        onValueChange={(value) => handlePointsChange(index, value)}
+                      >
+                        <SelectTrigger className="w-20">
+                          <SelectValue placeholder="0" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {pointOptions.map(points => (
+                            <SelectItem key={points} value={points.toString()}>
+                              {points}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
