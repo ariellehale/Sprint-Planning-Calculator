@@ -113,34 +113,25 @@ export default function TeamMember({
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => setIsOpen(!isOpen)} 
-                className="mr-2 bg-pink-500 hover:bg-pink-600 text-white"
-              >
-                {isOpen ? "Collapse" : "Expand"}
-              </Button>
               <h3 className="font-bold text-lg">{member.name}</h3>
             </div>
             <div className="flex space-x-2">
-              <Button 
-                size="sm" 
-                variant={isEditing ? "default" : "outline"} 
-                onClick={handleEditToggle}
-                className={isEditing ? "bg-pink-50 hover:bg-pink-100 text-pink-600" : "bg-red-500 hover:bg-red-600 text-white"}
-              >
-                {isEditing ? "Save" : "Edit"}
-              </Button>
-              {!isEditing && (
-                <Button 
-                  size="sm" 
-                  variant="destructive" 
-                  onClick={() => onRemove(member.id)}
-                >
-                  Remove
-                </Button>
-              )}
+              {!isEditing ? (
+                <>
+                  <div 
+                    className="cursor-pointer hover:text-blue-600"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Edit
+                  </div>
+                  <div 
+                    className="cursor-pointer text-red-500 hover:text-red-600"
+                    onClick={() => onRemove(member.id)}
+                  >
+                    Remove
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
 
