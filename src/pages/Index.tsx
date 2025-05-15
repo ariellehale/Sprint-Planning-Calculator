@@ -55,6 +55,16 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="md:col-span-2">
             <SprintConfig onConfigChange={handleConfigChange} />
+            
+            {sprintConfig.startDate && sprintConfig.sprints > 0 && (
+              <div className="mt-6">
+                <TeamCapacityChart 
+                  teamMembers={teamMembers}
+                  storyPointMappings={storyPointMappings}
+                  sprintConfig={sprintConfig}
+                />
+              </div>
+            )}
           </div>
           
           <div className="md:col-span-1">
@@ -65,17 +75,17 @@ const Index = () => {
           </div>
         </div>
         
-        {sprintConfig.startDate && sprintConfig.sprints > 0 && (
+        <Separator className="my-8" />
+        
+        {teamMembers.length > 0 && (
           <div className="mb-8">
-            <TeamCapacityChart 
+            <TeamCapacitySummary 
               teamMembers={teamMembers}
               storyPointMappings={storyPointMappings}
               sprintConfig={sprintConfig}
             />
           </div>
         )}
-        
-        <Separator className="my-8" />
         
         <div className="mb-8">
           <SprintPlanning 
@@ -91,20 +101,6 @@ const Index = () => {
             onTeamMembersChange={handleTeamMembersChange}
           />
         </div>
-        
-        {teamMembers.length > 0 && (
-          <>
-            <Separator className="my-8" />
-            
-            <div className="mb-8">
-              <TeamCapacitySummary 
-                teamMembers={teamMembers}
-                storyPointMappings={storyPointMappings}
-                sprintConfig={sprintConfig}
-              />
-            </div>
-          </>
-        )}
       </main>
       
       <footer className="bg-white border-t py-6">
