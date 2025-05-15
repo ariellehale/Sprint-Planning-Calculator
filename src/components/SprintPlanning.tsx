@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { format, addDays } from "date-fns";
 import { TeamMemberData } from "./TeamMember";
+import { useToast } from "@/hooks/use-toast";
 
 interface SprintPlanningProps {
   sprintConfig: {
@@ -31,6 +32,7 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     totalPoints: number;
     teamCapacity: number;
   }>>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Generate sprint plan when config or team members change
@@ -87,17 +89,22 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     setSprintPlan(newSprintPlan);
   };
 
-  // Fix: Update the handler to correctly update point values
+  // Fix: Update the input handling to properly update the points
   const handlePointsChange = (index: number, value: string) => {
     const points = parseInt(value) || 0;
     
-    setSprintPlan(prevPlan => {
-      const updatedPlan = [...prevPlan];
-      updatedPlan[index] = {
-        ...updatedPlan[index],
-        totalPoints: points
-      };
-      return updatedPlan;
+    const updatedPlan = [...sprintPlan];
+    updatedPlan[index] = {
+      ...updatedPlan[index],
+      totalPoints: points
+    };
+    
+    setSprintPlan(updatedPlan);
+    
+    // Add a toast notification to confirm the update
+    toast({
+      title: "Points Updated",
+      description: `Sprint ${updatedPlan[index].sprintNumber} planned points set to ${points}`,
     });
   };
 
@@ -168,6 +175,10 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                         value={sprint.totalPoints}
                         onChange={(e) => handlePointsChange(index, e.target.value)}
                         className="w-20"
+                        onBlur={(e) => {
+                          // Additional handler to ensure value is saved on blur
+                          handlePointsChange(index, e.target.value);
+                        }}
                       />
                     </TableCell>
                     <TableCell>
