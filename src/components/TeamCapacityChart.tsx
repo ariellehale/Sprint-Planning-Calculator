@@ -8,7 +8,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface TeamCapacityChartProps {
   teamMembers: TeamMemberData[];
@@ -63,7 +63,7 @@ export default function TeamCapacityChart({
     return `${date.getMonth() + 1}/${date.getDate()}`;
   };
 
-  // Prepare data for the line chart
+  // Prepare data for the bar chart
   const prepareChartData = () => {
     const chartData = [];
     
@@ -133,7 +133,7 @@ export default function TeamCapacityChart({
         <div className="h-[400px] w-full">
           <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
+              <BarChart
                 data={chartData}
                 margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
               >
@@ -164,34 +164,25 @@ export default function TeamCapacityChart({
                   }}
                 />
                 <Legend />
-                <Line 
-                  type="monotone" 
+                <Bar 
                   dataKey="totalCapacity" 
                   name="Total Capacity" 
-                  stroke={chartConfig.capacity.color}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
+                  fill={chartConfig.capacity.color}
+                  barSize={30}
                 />
-                <Line 
-                  type="monotone" 
+                <Bar 
                   dataKey="hoursRequired" 
                   name="Hours Required" 
-                  stroke={chartConfig.required.color}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
+                  fill={chartConfig.required.color}
+                  barSize={30}
                 />
-                <Line 
-                  type="monotone" 
+                <Bar 
                   dataKey="capacityRemaining" 
                   name="Capacity Remaining" 
-                  stroke={chartConfig.remaining.color}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
+                  fill={chartConfig.remaining.color}
+                  barSize={30}
                 />
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
         </div>
