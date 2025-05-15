@@ -69,11 +69,14 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
         (sprintConfig.sprintLength * 7) - 3 // End on Friday (remove weekend days)
       );
 
+      // Preserve existing points if available when regenerating the plan
+      const existingSprint = sprintPlan.find(s => s.sprintNumber === (i + 1));
+      
       newSprintPlan.push({
         sprintNumber: i + 1,
         startDate: new Date(currentStartDate),
         endDate: new Date(sprintEndDate),
-        totalPoints: 0, // Default, user can modify
+        totalPoints: existingSprint ? existingSprint.totalPoints : 0,
         teamCapacity
       });
 
@@ -84,15 +87,18 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     setSprintPlan(newSprintPlan);
   };
 
-  // Fix: Create a proper handler for points change that updates the state correctly
+  // Fix: Update the handler to correctly update point values
   const handlePointsChange = (index: number, value: string) => {
     const points = parseInt(value) || 0;
-    const updatedPlan = [...sprintPlan];
-    updatedPlan[index] = {
-      ...updatedPlan[index],
-      totalPoints: points
-    };
-    setSprintPlan(updatedPlan);
+    
+    setSprintPlan(prevPlan => {
+      const updatedPlan = [...prevPlan];
+      updatedPlan[index] = {
+        ...updatedPlan[index],
+        totalPoints: points
+      };
+      return updatedPlan;
+    });
   };
 
   if (sprintPlan.length === 0) {
