@@ -2,6 +2,9 @@
 import { SprintPointsEditor } from "./SprintPointsEditor";
 import { CapacityMetrics } from "./CapacityMetrics";
 import { TeamMemberData } from "../types/TeamMemberTypes";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { useState } from "react";
 
 interface TeamMemberViewProps {
   member: TeamMemberData;
@@ -14,6 +17,7 @@ interface TeamMemberViewProps {
   statusColor: string;
   sprintConfig: { sprints: number; sprintLength: number; velocity?: number };
   onSprintPointsChange: (e: React.ChangeEvent<HTMLInputElement>, sprintNumber: number) => void;
+  onEditClick: () => void;
 }
 
 export function TeamMemberView({
@@ -26,29 +30,30 @@ export function TeamMemberView({
   capacityRemaining,
   statusColor,
   sprintConfig,
-  onSprintPointsChange
+  onSprintPointsChange,
+  onEditClick
 }: TeamMemberViewProps) {
   return (
     <>
-      <div className="text-muted-foreground space-y-1">
+      <div className="flex justify-between items-center">
+        <h3 className="font-bold text-lg">{member.name}</h3>
+        <Button 
+          size="sm" 
+          variant="outline" 
+          onClick={onEditClick}
+          className="bg-[#311B92] text-white hover:bg-[#4527A0]"
+        >
+          Edit
+        </Button>
+      </div>
+      
+      <div className="text-muted-foreground space-y-1 mt-2">
         <p>Weekly Capacity: {member.weeklyCapacity} hours / {weeklyCapacityPoints} points</p>
         <p>Sprint Capacity: {member.weeklyCapacity * sprintConfig.sprintLength} hours / {sprintCapacityPoints} points</p>
         <p>Total Capacity: {totalSprintCapacity} hours / {totalCapacityPoints} points</p>
       </div>
 
-      <SprintPointsEditor 
-        member={member} 
-        sprints={sprintConfig.sprints} 
-        onChange={onSprintPointsChange} 
-      />
-
-      <CapacityMetrics 
-        totalSprintCapacity={totalSprintCapacity}
-        totalCapacityPoints={totalCapacityPoints}
-        totalAssignedPoints={totalAssignedPoints}
-        capacityRemaining={capacityRemaining}
-        statusColor={statusColor}
-      />
+      {/* The rest of the content is now hidden from the collapsed view */}
     </>
   );
 }

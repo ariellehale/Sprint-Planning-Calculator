@@ -29,12 +29,14 @@ export default function TeamMember({
   const [tempName, setTempName] = useState(member.name);
   const [tempWeeklyCapacity, setTempWeeklyCapacity] = useState(member.weeklyCapacity.toString());
   const [isOpen, setIsOpen] = useState(isNew);
+  const [showFullContent, setShowFullContent] = useState(isNew || isEditing);
 
   // When isNew changes, update editing state
   useEffect(() => {
     if (isNew) {
       setIsEditing(true);
       setIsOpen(true);
+      setShowFullContent(true);
     }
   }, [isNew]);
 
@@ -57,10 +59,12 @@ export default function TeamMember({
       
       // After saving, close the editing mode but keep the section open
       setIsEditing(false);
+      setShowFullContent(false);
     } else {
       // Open the collapsible when editing
       setIsOpen(true);
       setIsEditing(true);
+      setShowFullContent(true);
     }
   };
 
@@ -68,11 +72,13 @@ export default function TeamMember({
     setTempName(member.name);
     setTempWeeklyCapacity(member.weeklyCapacity.toString());
     setIsEditing(false);
-    
-    // If this is a new member, keep it expanded
-    if (!isNew) {
-      setIsOpen(false);
-    }
+    setShowFullContent(false);
+  };
+
+  const handleEditClick = () => {
+    setIsOpen(true);
+    setIsEditing(true);
+    setShowFullContent(true);
   };
 
   const handleSprintPointsChange = (e: React.ChangeEvent<HTMLInputElement>, sprintNumber: number) => {
@@ -134,29 +140,23 @@ export default function TeamMember({
               </div>
             </div>
           ) : (
-            <div className="flex justify-between items-center">
-              <div 
-                className="flex items-center cursor-pointer" 
-                onClick={() => setIsOpen(!isOpen)}
-              >
-                <h3 className="font-bold text-lg">{member.name}</h3>
-              </div>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => {
-                  setIsOpen(true);
-                  setIsEditing(true);
-                }}
-                className="bg-[#311B92] text-white hover:bg-[#4527A0]"
-              >
-                Edit
-              </Button>
-            </div>
+            <TeamMemberView 
+              member={member}
+              weeklyCapacityPoints={weeklyCapacityPoints}
+              sprintCapacityPoints={sprintCapacityPoints}
+              totalCapacityPoints={totalCapacityPoints}
+              totalSprintCapacity={totalSprintCapacity}
+              totalAssignedPoints={totalAssignedPoints}
+              capacityRemaining={capacityRemaining}
+              statusColor={statusColor}
+              sprintConfig={sprintConfig}
+              onSprintPointsChange={handleSprintPointsChange}
+              onEditClick={handleEditClick}
+            />
           )}
 
           <CollapsibleContent className="mt-4 space-y-4">
-            {isEditing ? (
+            {isEditing && (
               <>
                 <TeamMemberEditForm
                   member={member}
@@ -182,19 +182,23 @@ export default function TeamMember({
                   </Button>
                 </div>
               </>
-            ) : (
-              <TeamMemberView
-                member={member}
-                weeklyCapacityPoints={weeklyCapacityPoints}
-                sprintCapacityPoints={sprintCapacityPoints}
-                totalCapacityPoints={totalCapacityPoints}
-                totalSprintCapacity={totalSprintCapacity}
-                totalAssignedPoints={totalAssignedPoints}
-                capacityRemaining={capacityRemaining}
-                statusColor={statusColor}
-                sprintConfig={sprintConfig}
-                onSprintPointsChange={handleSprintPointsChange}
-              />
+            )}
+            {!isEditing && showFullContent && (
+              <>
+                <SprintPointsEditor 
+                  member={member} 
+                  sprints={sprintConfig.sprints} 
+                  onChange={handleSprintPointsChange} 
+                />
+
+                <CapacityMetrics 
+                  totalSprintCapacity={totalSprintCapacity}
+                  totalCapacityPoints={totalCapacityPoints}
+                  totalAssignedPoints={totalAssignedPoints}
+                  capacityRemaining={capacityRemaining}
+                  statusColor={statusColor}
+                />
+              </>
             )}
           </CollapsibleContent>
         </Collapsible>
