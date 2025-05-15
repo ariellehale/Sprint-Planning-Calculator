@@ -14,6 +14,7 @@ const Index = () => {
     sprintLength: 2,
     startDate: null as Date | null,
     dueDate: null as Date | null,
+    velocity: 4, // 4 hours per point
   });
   
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
@@ -27,8 +28,14 @@ const Index = () => {
     8: 32,  // 8 points = 32 hours
   });
 
-  const handleConfigChange = (sprints: number, sprintLength: number, startDate: Date | null, dueDate: Date | null) => {
-    setSprintConfig({ sprints, sprintLength, startDate, dueDate });
+  const handleConfigChange = (
+    sprints: number, 
+    sprintLength: number, 
+    startDate: Date | null, 
+    dueDate: Date | null,
+    velocity: number
+  ) => {
+    setSprintConfig({ sprints, sprintLength, startDate, dueDate, velocity });
   };
 
   const handleTeamMembersChange = (updatedMembers: TeamMemberData[]) => {

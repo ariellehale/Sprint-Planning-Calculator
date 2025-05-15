@@ -18,7 +18,7 @@ interface TeamMemberProps {
   onChange: (updatedMember: TeamMemberData) => void;
   onRemove: (id: string) => void;
   storyPointMappings: Record<number, number>;
-  sprintConfig: { sprints: number; sprintLength: number };
+  sprintConfig: { sprints: number; sprintLength: number; velocity?: number };
 }
 
 export default function TeamMember({ 
@@ -70,7 +70,8 @@ export default function TeamMember({
   };
 
   // Calculate capacity metrics
-  const totalSprintCapacity = member.weeklyCapacity * sprintConfig.sprintLength * sprintConfig.sprints;
+  const sprintCapacity = member.weeklyCapacity * sprintConfig.sprintLength;
+  const totalSprintCapacity = sprintCapacity * sprintConfig.sprints;
   
   let totalHoursRequired = 0;
   Object.entries(member.assignedStoryPoints).forEach(([pointsStr, count]) => {
@@ -122,9 +123,11 @@ export default function TeamMember({
           ) : (
             <div className="flex flex-col">
               <h3 className="font-bold text-lg">{member.name}</h3>
-              <p className="text-muted-foreground">
-                Weekly Capacity: {member.weeklyCapacity} hours
-              </p>
+              <div className="text-muted-foreground space-y-1">
+                <p>Weekly Capacity: {member.weeklyCapacity} hours</p>
+                <p>Sprint Capacity: {sprintCapacity} hours</p>
+                <p>Total Capacity: {totalSprintCapacity} hours</p>
+              </div>
             </div>
           )}
           <div className="flex space-x-2">
@@ -157,13 +160,13 @@ export default function TeamMember({
         <div className="space-y-4 mt-4">
           <div className="border rounded-md p-3">
             <h4 className="font-medium text-sm mb-2">Story Points Assignment</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="flex flex-wrap gap-3">
               {Object.keys(storyPointMappings).map((pointsStr) => {
                 const points = parseInt(pointsStr);
                 return (
-                  <div key={points} className="space-y-1">
-                    <Label htmlFor={`sp-${points}-${member.id}`} className="text-xs">
-                      {points} {points === 1 ? "point" : "points"} tasks
+                  <div key={points} className="flex items-center space-x-2">
+                    <Label htmlFor={`sp-${points}-${member.id}`} className="whitespace-nowrap">
+                      {points} {points === 1 ? "point" : "points"}:
                     </Label>
                     <Input
                       id={`sp-${points}-${member.id}`}
@@ -171,7 +174,7 @@ export default function TeamMember({
                       min={0}
                       value={member.assignedStoryPoints[points] || 0}
                       onChange={(e) => handleStoryPointChange(e, points)}
-                      className="h-8"
+                      className="h-8 w-16"
                     />
                   </div>
                 );

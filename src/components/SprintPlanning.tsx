@@ -26,6 +26,7 @@ interface SprintPlanningProps {
     sprintLength: number;
     startDate: Date | null;
     dueDate: Date | null;
+    velocity: number;
   };
   teamMembers: TeamMemberData[];
 }
@@ -37,6 +38,8 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     endDate: Date | null;
     totalPoints: number;
     teamCapacity: number;
+    adjustedCapacity: number;
+    capacityOverflow: number;
   }>>([]);
   const { toast } = useToast();
 
@@ -85,14 +88,58 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
         startDate: new Date(currentStartDate),
         endDate: new Date(sprintEndDate),
         totalPoints: existingSprint ? existingSprint.totalPoints : 0,
-        teamCapacity
+        teamCapacity,
+        adjustedCapacity: teamCapacity, // Initially same as teamCapacity
+        capacityOverflow: 0 // Initially no overflow
       });
 
       // Move to next sprint start (next Monday)
       currentStartDate = addDays(sprintEndDate, 3); // Move to next Monday from Friday
     }
 
-    setSprintPlan(newSprintPlan);
+    recalculateCapacityOverflow(newSprintPlan);
+  };
+
+  // Recalculate capacity overflow across all sprints
+  const recalculateCapacityOverflow = (sprintPlanArray = sprintPlan) => {
+    const updatedPlan = [...sprintPlanArray];
+    
+    // Reset all adjusted capacities to original teamCapacity
+    updatedPlan.forEach(sprint => {
+      sprint.adjustedCapacity = sprint.teamCapacity;
+      sprint.capacityOverflow = 0;
+    });
+    
+    // Calculate overflows
+    for (let i = 0; i < updatedPlan.length - 1; i++) {
+      const currentSprint = updatedPlan[i];
+      const nextSprint = updatedPlan[i + 1];
+      
+      // Calculate how many hours of points are planned
+      const pointsInHours = currentSprint.totalPoints * sprintConfig.velocity;
+      
+      // Check if points exceed the adjusted capacity
+      if (pointsInHours > currentSprint.adjustedCapacity) {
+        // Calculate overflow
+        const overflow = pointsInHours - currentSprint.adjustedCapacity;
+        currentSprint.capacityOverflow = overflow;
+        
+        // Reduce next sprint's capacity by overflow
+        nextSprint.adjustedCapacity = nextSprint.teamCapacity - overflow;
+        if (nextSprint.adjustedCapacity < 0) {
+          nextSprint.adjustedCapacity = 0;
+        }
+      }
+    }
+    
+    // Check the last sprint for overflow (no next sprint to adjust)
+    const lastSprint = updatedPlan[updatedPlan.length - 1];
+    const lastPointsInHours = lastSprint.totalPoints * sprintConfig.velocity;
+    if (lastPointsInHours > lastSprint.adjustedCapacity) {
+      lastSprint.capacityOverflow = lastPointsInHours - lastSprint.adjustedCapacity;
+    }
+    
+    setSprintPlan(updatedPlan);
   };
 
   // Fixed: Using Select component instead of Input for more reliability
@@ -108,8 +155,8 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
       totalPoints: points
     };
     
-    // Update the state with the new array
-    setSprintPlan(newPlan);
+    // Recalculate capacity overflow
+    recalculateCapacityOverflow(newPlan);
     
     // Add a toast notification to confirm the update
     toast({
@@ -154,14 +201,17 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
                 <TableHead>Team Capacity (Hours)</TableHead>
+                <TableHead>Adjusted Capacity</TableHead>
                 <TableHead>Planned Points</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sprintPlan.map((sprint, index) => {
-                const utilizationPercentage = sprint.teamCapacity > 0 
-                  ? Math.min(100, Math.round((sprint.totalPoints / sprint.teamCapacity) * 100))
+                // Calculate in hours
+                const plannedHours = sprint.totalPoints * sprintConfig.velocity;
+                const utilizationPercentage = sprint.adjustedCapacity > 0 
+                  ? Math.min(100, Math.round((plannedHours / sprint.adjustedCapacity) * 100))
                   : 0;
                   
                 let statusColor = "bg-green-500"; // Good: Under 60% utilization
@@ -181,6 +231,12 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                       {sprint.endDate ? format(sprint.endDate, 'MMM dd, yyyy') : '-'}
                     </TableCell>
                     <TableCell>{sprint.teamCapacity}</TableCell>
+                    <TableCell>
+                      {sprint.adjustedCapacity} 
+                      {sprint.capacityOverflow > 0 && (
+                        <span className="text-red-500 ml-1">(-{sprint.capacityOverflow})</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Select
                         value={sprint.totalPoints.toString()}

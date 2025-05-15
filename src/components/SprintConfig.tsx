@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface SprintConfigProps {
-  onConfigChange: (sprints: number, sprintLength: number, startDate: Date | null, dueDate: Date | null) => void;
+  onConfigChange: (sprints: number, sprintLength: number, startDate: Date | null, dueDate: Date | null, velocity: number) => void;
 }
 
 export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
@@ -23,6 +23,7 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
   const [sprintLength, setSprintLength] = useState<number>(2);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [velocity, setVelocity] = useState<number>(4); // Default to 4 hours per point
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
 
   // Fixed: Added proper dependency array and prevent infinite loop
@@ -47,8 +48,8 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
 
   // Fixed: Added proper dependency array and prevent infinite loop
   useEffect(() => {
-    onConfigChange(sprints, sprintLength, startDate, dueDate);
-  }, [sprints, sprintLength, startDate, dueDate, onConfigChange]);
+    onConfigChange(sprints, sprintLength, startDate, dueDate, velocity);
+  }, [sprints, sprintLength, startDate, dueDate, velocity, onConfigChange]);
 
   const handleSprintsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.max(1, parseInt(e.target.value) || 1);
@@ -60,6 +61,11 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
     setSprintLength(value);
   };
 
+  const handleVelocityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(1, parseInt(e.target.value) || 1);
+    setVelocity(value);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -68,7 +74,7 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-2">
             <Label htmlFor="sprints">Number of Sprints</Label>
             <Input
@@ -88,6 +94,17 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
               min={1}
               value={sprintLength}
               onChange={handleSprintLengthChange}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="velocity">Velocity (hours/point)</Label>
+            <Input
+              id="velocity"
+              type="number"
+              min={1}
+              value={velocity}
+              onChange={handleVelocityChange}
             />
           </div>
           
