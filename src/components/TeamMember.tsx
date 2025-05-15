@@ -6,6 +6,8 @@ import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { TeamMemberEditForm } from "./team/TeamMemberEditForm";
 import { TeamMemberView } from "./team/TeamMemberView";
 import { TeamMemberData } from "./types/TeamMemberTypes";
+import { SprintPointsEditor } from "./team/SprintPointsEditor";
+import { CapacityMetrics } from "./team/CapacityMetrics";
 import { Save, X, Trash2 } from "lucide-react";
 
 interface TeamMemberProps {
