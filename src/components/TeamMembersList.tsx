@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeamMember, { TeamMemberData } from "./TeamMember";
@@ -9,11 +8,13 @@ import { v4 as uuidv4 } from "uuid";
 interface TeamMembersListProps {
   storyPointMappings: Record<number, number>;
   sprintConfig: { sprints: number; sprintLength: number };
+  onTeamMembersChange: (members: TeamMemberData[]) => void;
 }
 
 export default function TeamMembersList({ 
   storyPointMappings, 
-  sprintConfig 
+  sprintConfig,
+  onTeamMembersChange
 }: TeamMembersListProps) {
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
 
@@ -24,19 +25,23 @@ export default function TeamMembersList({
       weeklyCapacity: 30,
       assignedStoryPoints: {},
     };
-    setTeamMembers([...teamMembers, newMember]);
+    const updatedMembers = [...teamMembers, newMember];
+    setTeamMembers(updatedMembers);
+    onTeamMembersChange(updatedMembers);
   };
 
   const updateTeamMember = (updatedMember: TeamMemberData) => {
-    setTeamMembers(
-      teamMembers.map((member) =>
-        member.id === updatedMember.id ? updatedMember : member
-      )
+    const updatedMembers = teamMembers.map((member) =>
+      member.id === updatedMember.id ? updatedMember : member
     );
+    setTeamMembers(updatedMembers);
+    onTeamMembersChange(updatedMembers);
   };
 
   const removeTeamMember = (id: string) => {
-    setTeamMembers(teamMembers.filter((member) => member.id !== id));
+    const updatedMembers = teamMembers.filter((member) => member.id !== id);
+    setTeamMembers(updatedMembers);
+    onTeamMembersChange(updatedMembers);
   };
 
   return (

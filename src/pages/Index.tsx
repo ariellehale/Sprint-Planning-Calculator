@@ -5,6 +5,7 @@ import TeamMembersList from "@/components/TeamMembersList";
 import StoryPointInfo from "@/components/StoryPointInfo";
 import { TeamMemberData } from "@/components/TeamMember";
 import TeamCapacitySummary from "@/components/TeamCapacitySummary";
+import TeamCapacityChart from "@/components/TeamCapacityChart";
 
 const Index = () => {
   const [sprintConfig, setSprintConfig] = useState({
@@ -24,6 +25,10 @@ const Index = () => {
 
   const handleConfigChange = (sprints: number, sprintLength: number) => {
     setSprintConfig({ sprints, sprintLength });
+  };
+
+  const handleTeamMembersChange = (updatedMembers: TeamMemberData[]) => {
+    setTeamMembers(updatedMembers);
   };
 
   return (
@@ -52,11 +57,20 @@ const Index = () => {
           <TeamMembersList 
             storyPointMappings={storyPointMappings} 
             sprintConfig={sprintConfig} 
+            onTeamMembersChange={handleTeamMembersChange}
           />
         </div>
         
         <div className="mt-8">
           <TeamCapacitySummary 
+            teamMembers={teamMembers}
+            storyPointMappings={storyPointMappings}
+            sprintConfig={sprintConfig}
+          />
+        </div>
+
+        <div className="mt-8">
+          <TeamCapacityChart 
             teamMembers={teamMembers}
             storyPointMappings={storyPointMappings}
             sprintConfig={sprintConfig}
