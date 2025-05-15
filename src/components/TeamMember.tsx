@@ -1,9 +1,8 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, Minimize, Expand, X } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -32,10 +31,18 @@ export default function TeamMember({
   sprintConfig,
   isNew = false
 }: TeamMemberProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(isNew);
   const [tempName, setTempName] = useState(member.name);
   const [tempWeeklyCapacity, setTempWeeklyCapacity] = useState(member.weeklyCapacity.toString());
   const [isOpen, setIsOpen] = useState(isNew);
+
+  // When isNew changes, update editing state
+  useEffect(() => {
+    if (isNew) {
+      setIsEditing(true);
+      setIsOpen(true);
+    }
+  }, [isNew]);
 
   // Initialize sprint story points if not already present
   if (!member.sprintStoryPoints) {
@@ -61,17 +68,26 @@ export default function TeamMember({
         name: tempName || "Team Member",
         weeklyCapacity: Math.max(0, parseInt(tempWeeklyCapacity) || 0),
       });
+      
+      // After saving, close the editing mode and collapse the section
+      setIsEditing(false);
+      setIsOpen(false);
     } else {
       // Open the collapsible when editing
       setIsOpen(true);
+      setIsEditing(true);
     }
-    setIsEditing(!isEditing);
   };
 
   const handleCancel = () => {
     setTempName(member.name);
     setTempWeeklyCapacity(member.weeklyCapacity.toString());
     setIsEditing(false);
+    
+    // If this is a new member, keep it expanded
+    if (!isNew) {
+      setIsOpen(false);
+    }
   };
 
   const handleSprintPointsChange = (e: React.ChangeEvent<HTMLInputElement>, sprintNumber: number) => {
@@ -86,9 +102,9 @@ export default function TeamMember({
   };
 
   // Calculate capacity metrics
+  const velocity = sprintConfig.velocity || 2; // Default to 2 hours per point
   const sprintCapacity = member.weeklyCapacity * sprintConfig.sprintLength;
   const totalSprintCapacity = sprintCapacity * sprintConfig.sprints;
-  const velocity = sprintConfig.velocity || 2; // Default to 2 hours per point
   
   // Calculate points from hours
   const weeklyCapacityPoints = Math.floor(member.weeklyCapacity / velocity);
@@ -115,36 +131,32 @@ export default function TeamMember({
             <div className="flex items-center">
               <Button 
                 size="sm" 
-                variant="ghost" 
+                variant="outline" 
                 onClick={() => setIsOpen(!isOpen)} 
-                className="p-0 mr-2 text-pink-500 hover:text-pink-600 hover:bg-pink-50"
+                className="mr-2 bg-pink-500 hover:bg-pink-600 text-white"
               >
-                {isOpen ? 
-                  <Minimize className="h-5 w-5" /> : 
-                  <Expand className="h-5 w-5" />
-                }
+                {isOpen ? "Collapse" : "Expand"}
               </Button>
               <h3 className="font-bold text-lg">{member.name}</h3>
             </div>
             <div className="flex space-x-2">
               <Button 
                 size="sm" 
-                variant="outline" 
-                className="bg-pink-50 hover:bg-pink-100 text-pink-600"
-                onClick={() => setIsOpen(!isOpen)}
+                variant={isEditing ? "default" : "outline"} 
+                onClick={handleEditToggle}
+                className={isEditing ? "bg-pink-50 hover:bg-pink-100 text-pink-600" : "bg-red-500 hover:bg-red-600 text-white"}
               >
-                {isOpen ? "Collapse" : "Expand"}
+                {isEditing ? "Save" : "Edit"}
               </Button>
-              <Button size="sm" variant="outline" onClick={handleEditToggle}>
-                Edit
-              </Button>
-              <Button 
-                size="sm" 
-                variant="destructive" 
-                onClick={() => onRemove(member.id)}
-              >
-                Remove
-              </Button>
+              {!isEditing && (
+                <Button 
+                  size="sm" 
+                  variant="destructive" 
+                  onClick={() => onRemove(member.id)}
+                >
+                  Remove
+                </Button>
+              )}
             </div>
           </div>
 
@@ -175,6 +187,52 @@ export default function TeamMember({
                     min={0}
                   />
                 </div>
+
+                {/* Sprint-specific story points assignment */}
+                <div className="col-span-full border rounded-md p-3">
+                  <h4 className="font-medium text-sm mb-2">Story Points per Sprint</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {Array.from({ length: sprintConfig.sprints }, (_, i) => i + 1).map((sprintNumber) => (
+                      <div key={`sprint-${sprintNumber}`} className="flex items-center space-x-2">
+                        <Label htmlFor={`sprint-${sprintNumber}-${member.id}`} className="whitespace-nowrap">
+                          Sprint {sprintNumber}:
+                        </Label>
+                        <Input
+                          id={`sprint-${sprintNumber}-${member.id}`}
+                          type="number"
+                          min={0}
+                          value={(member.sprintStoryPoints?.[sprintNumber] || 0)}
+                          onChange={(e) => handleSprintPointsChange(e, sprintNumber)}
+                          className="h-8 w-16"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="col-span-full border rounded-md p-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Total Sprint Capacity:</span>
+                    <span className="font-medium">{totalSprintCapacity} hours / {totalCapacityPoints} points</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Assigned Story Points:</span>
+                    <span className="font-medium">{totalAssignedPoints} points ({totalAssignedPoints * velocity} hours)</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Capacity Remaining:</span>
+                    <span className="font-medium">{capacityRemaining} hours</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-200 mt-2">
+                    <div 
+                      className={`h-full rounded-full ${statusColor}`}
+                      style={{ 
+                        width: `${Math.max(0, Math.min(100, (capacityRemaining / totalSprintCapacity) * 100))}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
                 <div className="col-span-full flex justify-end space-x-2 mt-2">
                   <Button size="sm" variant="outline" onClick={handleCancel}>
                     <X className="h-4 w-4 mr-1" /> Cancel
@@ -192,50 +250,54 @@ export default function TeamMember({
               </div>
             )}
 
-            {/* Sprint-specific story points assignment */}
-            <div className="border rounded-md p-3">
-              <h4 className="font-medium text-sm mb-2">Story Points per Sprint</h4>
-              <div className="flex flex-wrap gap-3">
-                {Array.from({ length: sprintConfig.sprints }, (_, i) => i + 1).map((sprintNumber) => (
-                  <div key={`sprint-${sprintNumber}`} className="flex items-center space-x-2">
-                    <Label htmlFor={`sprint-${sprintNumber}-${member.id}`} className="whitespace-nowrap">
-                      Sprint {sprintNumber}:
-                    </Label>
-                    <Input
-                      id={`sprint-${sprintNumber}-${member.id}`}
-                      type="number"
-                      min={0}
-                      value={(member.sprintStoryPoints?.[sprintNumber] || 0)}
-                      onChange={(e) => handleSprintPointsChange(e, sprintNumber)}
-                      className="h-8 w-16"
-                    />
+            {!isEditing && (
+              <>
+                {/* Sprint-specific story points assignment */}
+                <div className="border rounded-md p-3">
+                  <h4 className="font-medium text-sm mb-2">Story Points per Sprint</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {Array.from({ length: sprintConfig.sprints }, (_, i) => i + 1).map((sprintNumber) => (
+                      <div key={`sprint-${sprintNumber}`} className="flex items-center space-x-2">
+                        <Label htmlFor={`sprint-${sprintNumber}-${member.id}`} className="whitespace-nowrap">
+                          Sprint {sprintNumber}:
+                        </Label>
+                        <Input
+                          id={`sprint-${sprintNumber}-${member.id}`}
+                          type="number"
+                          min={0}
+                          value={(member.sprintStoryPoints?.[sprintNumber] || 0)}
+                          onChange={(e) => handleSprintPointsChange(e, sprintNumber)}
+                          className="h-8 w-16"
+                        />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            <div className="border rounded-md p-3 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Total Sprint Capacity:</span>
-                <span className="font-medium">{totalSprintCapacity} hours / {totalCapacityPoints} points</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Assigned Story Points:</span>
-                <span className="font-medium">{totalAssignedPoints} points ({totalAssignedPoints * velocity} hours)</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Capacity Remaining:</span>
-                <span className="font-medium">{capacityRemaining} hours</span>
-              </div>
-              <div className="h-2 rounded-full bg-gray-200 mt-2">
-                <div 
-                  className={`h-full rounded-full ${statusColor}`}
-                  style={{ 
-                    width: `${Math.max(0, Math.min(100, (capacityRemaining / totalSprintCapacity) * 100))}%` 
-                  }}
-                ></div>
-              </div>
-            </div>
+                <div className="border rounded-md p-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Total Sprint Capacity:</span>
+                    <span className="font-medium">{totalSprintCapacity} hours / {totalCapacityPoints} points</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Assigned Story Points:</span>
+                    <span className="font-medium">{totalAssignedPoints} points ({totalAssignedPoints * velocity} hours)</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Capacity Remaining:</span>
+                    <span className="font-medium">{capacityRemaining} hours</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-200 mt-2">
+                    <div 
+                      className={`h-full rounded-full ${statusColor}`}
+                      style={{ 
+                        width: `${Math.max(0, Math.min(100, (capacityRemaining / totalSprintCapacity) * 100))}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              </>
+            )}
           </CollapsibleContent>
         </Collapsible>
       </CardContent>
