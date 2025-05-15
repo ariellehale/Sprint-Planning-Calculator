@@ -10,12 +10,8 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Input
+} from "@/components/ui/input";
 import { format, addDays } from "date-fns";
 import { TeamMemberData } from "./TeamMember";
 import { useToast } from "@/hooks/use-toast";
@@ -38,8 +34,9 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     endDate: Date | null;
     totalPoints: number;
     teamCapacity: number;
-    adjustedCapacity: number;
-    capacityOverflow: number;
+    teamCapacityPoints: number;
+    adjustedCapacityPoints: number;
+    remainingPoints: number;
   }>>([]);
   const { toast } = useToast();
 
@@ -72,6 +69,7 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     };
 
     const teamCapacity = calculateTeamCapacity();
+    const teamCapacityPoints = Math.floor(teamCapacity / sprintConfig.velocity);
 
     for (let i = 0; i < sprintConfig.sprints; i++) {
       // Sprint ends on Friday of the last week
@@ -89,8 +87,9 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
         endDate: new Date(sprintEndDate),
         totalPoints: existingSprint ? existingSprint.totalPoints : 0,
         teamCapacity,
-        adjustedCapacity: teamCapacity, // Initially same as teamCapacity
-        capacityOverflow: 0 // Initially no overflow
+        teamCapacityPoints,
+        adjustedCapacityPoints: teamCapacityPoints, // Initially same as teamCapacityPoints
+        remainingPoints: teamCapacityPoints // Initially same as adjusted capacity points
       });
 
       // Move to next sprint start (next Monday)
@@ -104,10 +103,10 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
   const recalculateCapacityOverflow = (sprintPlanArray = sprintPlan) => {
     const updatedPlan = [...sprintPlanArray];
     
-    // Reset all adjusted capacities to original teamCapacity
+    // Reset all adjusted capacities to original teamCapacity points
     updatedPlan.forEach(sprint => {
-      sprint.adjustedCapacity = sprint.teamCapacity;
-      sprint.capacityOverflow = 0;
+      sprint.adjustedCapacityPoints = sprint.teamCapacityPoints;
+      sprint.remainingPoints = sprint.teamCapacityPoints;
     });
     
     // Calculate overflows
@@ -115,35 +114,40 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
       const currentSprint = updatedPlan[i];
       const nextSprint = updatedPlan[i + 1];
       
-      // Calculate how many hours of points are planned
-      const pointsInHours = currentSprint.totalPoints * sprintConfig.velocity;
+      // Calculate remaining points after planned points
+      currentSprint.remainingPoints = currentSprint.adjustedCapacityPoints - currentSprint.totalPoints;
       
-      // Check if points exceed the adjusted capacity
-      if (pointsInHours > currentSprint.adjustedCapacity) {
+      // Check if points exceed the adjusted capacity points
+      if (currentSprint.remainingPoints < 0) {
         // Calculate overflow
-        const overflow = pointsInHours - currentSprint.adjustedCapacity;
-        currentSprint.capacityOverflow = overflow;
+        const overflow = Math.abs(currentSprint.remainingPoints);
+        currentSprint.remainingPoints = 0;
         
         // Reduce next sprint's capacity by overflow
-        nextSprint.adjustedCapacity = nextSprint.teamCapacity - overflow;
-        if (nextSprint.adjustedCapacity < 0) {
-          nextSprint.adjustedCapacity = 0;
+        nextSprint.adjustedCapacityPoints = nextSprint.teamCapacityPoints - overflow;
+        if (nextSprint.adjustedCapacityPoints < 0) {
+          nextSprint.adjustedCapacityPoints = 0;
         }
+        nextSprint.remainingPoints = nextSprint.adjustedCapacityPoints;
+      } else {
+        // No overflow
+        currentSprint.remainingPoints = currentSprint.adjustedCapacityPoints - currentSprint.totalPoints;
       }
     }
     
     // Check the last sprint for overflow (no next sprint to adjust)
     const lastSprint = updatedPlan[updatedPlan.length - 1];
-    const lastPointsInHours = lastSprint.totalPoints * sprintConfig.velocity;
-    if (lastPointsInHours > lastSprint.adjustedCapacity) {
-      lastSprint.capacityOverflow = lastPointsInHours - lastSprint.adjustedCapacity;
+    lastSprint.remainingPoints = lastSprint.adjustedCapacityPoints - lastSprint.totalPoints;
+    if (lastSprint.remainingPoints < 0) {
+      lastSprint.remainingPoints = 0;
     }
     
     setSprintPlan(updatedPlan);
   };
 
-  // Fixed: Using Select component instead of Input for more reliability
-  const handlePointsChange = (index: number, value: string) => {
+  // Using Input component for direct numerical input
+  const handlePointsChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     const points = parseInt(value) || 0;
     
     // Create a new array with all sprints
@@ -182,9 +186,6 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     );
   }
 
-  // Generate point options for the select (0-100)
-  const pointOptions = Array.from({ length: 101 }, (_, i) => i);
-
   return (
     <Card className="mb-8">
       <CardHeader>
@@ -201,17 +202,17 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
                 <TableHead>Team Capacity (Hours)</TableHead>
-                <TableHead>Adjusted Capacity</TableHead>
+                <TableHead>Team Capacity (Points)</TableHead>
                 <TableHead>Planned Points</TableHead>
+                <TableHead>Remaining Points</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sprintPlan.map((sprint, index) => {
-                // Calculate in hours
-                const plannedHours = sprint.totalPoints * sprintConfig.velocity;
-                const utilizationPercentage = sprint.adjustedCapacity > 0 
-                  ? Math.min(100, Math.round((plannedHours / sprint.adjustedCapacity) * 100))
+                // Calculate utilization percentage based on points
+                const utilizationPercentage = sprint.adjustedCapacityPoints > 0 
+                  ? Math.min(100, Math.round((sprint.totalPoints / sprint.adjustedCapacityPoints) * 100))
                   : 0;
                   
                 let statusColor = "bg-green-500"; // Good: Under 60% utilization
@@ -232,27 +233,24 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                     </TableCell>
                     <TableCell>{sprint.teamCapacity}</TableCell>
                     <TableCell>
-                      {sprint.adjustedCapacity} 
-                      {sprint.capacityOverflow > 0 && (
-                        <span className="text-red-500 ml-1">(-{sprint.capacityOverflow})</span>
+                      {sprint.adjustedCapacityPoints} 
+                      {sprint.adjustedCapacityPoints < sprint.teamCapacityPoints && (
+                        <span className="text-red-500 ml-1">
+                          (-{sprint.teamCapacityPoints - sprint.adjustedCapacityPoints})
+                        </span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={sprint.totalPoints.toString()}
-                        onValueChange={(value) => handlePointsChange(index, value)}
-                      >
-                        <SelectTrigger className="w-20">
-                          <SelectValue placeholder="0" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {pointOptions.map(points => (
-                            <SelectItem key={points} value={points.toString()}>
-                              {points}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={sprint.totalPoints}
+                        onChange={(e) => handlePointsChange(index, e)}
+                        className="w-20"
+                      />
+                    </TableCell>
+                    <TableCell className={sprint.remainingPoints < 5 ? "text-red-500 font-medium" : ""}>
+                      {sprint.remainingPoints}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">

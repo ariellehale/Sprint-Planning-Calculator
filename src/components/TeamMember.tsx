@@ -116,7 +116,17 @@ export default function TeamMember({
       <CardContent className="p-4">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <div className="flex justify-between items-center">
-            <h3 className="font-bold text-lg">{member.name}</h3>
+            <div className="flex items-center">
+              <CollapsibleTrigger asChild>
+                <Button size="sm" variant="ghost" className="p-0 mr-2">
+                  {isOpen ? 
+                    <ChevronUp className="h-5 w-5 text-pink-500" /> : 
+                    <ChevronDown className="h-5 w-5 text-pink-500" />
+                  }
+                </Button>
+              </CollapsibleTrigger>
+              <h3 className="font-bold text-lg">{member.name}</h3>
+            </div>
             <div className="flex space-x-2">
               <Button size="sm" variant="outline" onClick={handleEditToggle}>
                 Edit
@@ -128,11 +138,6 @@ export default function TeamMember({
               >
                 Remove
               </Button>
-              <CollapsibleTrigger asChild>
-                <Button size="sm" variant="ghost">
-                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
             </div>
           </div>
 
@@ -140,24 +145,24 @@ export default function TeamMember({
             {isEditing ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full mb-4">
                 <div>
-                  <Label htmlFor={`name-${member.id}`} className="sr-only">
-                    Name
+                  <Label htmlFor={`name-${member.id}`}>
+                    Team Member's Name
                   </Label>
                   <Input
                     id={`name-${member.id}`}
-                    placeholder="Team Member Name"
+                    placeholder="Add team member's name here"
                     value={tempName}
                     onChange={handleNameChange}
                   />
                 </div>
                 <div>
-                  <Label htmlFor={`capacity-${member.id}`} className="sr-only">
-                    Weekly Capacity (Hours)
+                  <Label htmlFor={`capacity-${member.id}`}>
+                    Available Working Hours per Week
                   </Label>
                   <Input
                     id={`capacity-${member.id}`}
                     type="number"
-                    placeholder="Weekly Capacity"
+                    placeholder="Insert working hours per week here"
                     value={tempWeeklyCapacity}
                     onChange={handleCapacityChange}
                     min={0}
