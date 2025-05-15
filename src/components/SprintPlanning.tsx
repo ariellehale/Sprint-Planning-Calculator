@@ -36,6 +36,7 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     teamCapacityPoints: number;
     adjustedCapacityPoints: number;
     remainingPoints: number;
+    manuallySet: boolean;
   }>>([]);
   const { toast } = useToast();
 
@@ -93,7 +94,12 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
       const existingSprint = sprintPlan.find(s => s.sprintNumber === sprintNumber);
       
       // Use auto-calculated points as default, but keep existing points if they were manually set
-      const totalPoints = existingSprint ? existingSprint.totalPoints : autoPlannedPoints;
+      // If no existing points were set, use the auto-planned points
+      const totalPoints = existingSprint 
+        ? (existingSprint.totalPoints !== autoPlannedPoints && existingSprint.manuallySet 
+            ? existingSprint.totalPoints 
+            : autoPlannedPoints)
+        : autoPlannedPoints;
       
       newSprintPlan.push({
         sprintNumber,
@@ -103,7 +109,8 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
         teamCapacity,
         teamCapacityPoints,
         adjustedCapacityPoints: teamCapacityPoints, // Initially same as teamCapacityPoints
-        remainingPoints: teamCapacityPoints // Initially same as adjusted capacity points
+        remainingPoints: teamCapacityPoints, // Initially same as adjusted capacity points
+        manuallySet: existingSprint ? existingSprint.manuallySet : false
       });
 
       // Move to next sprint start (next Monday)
@@ -167,10 +174,11 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
     // Create a new array with all sprints
     const newPlan = [...sprintPlan];
     
-    // Update the specific sprint with new points
+    // Update the specific sprint with new points and mark as manually set
     newPlan[index] = {
       ...newPlan[index],
-      totalPoints: points
+      totalPoints: points,
+      manuallySet: true
     };
     
     // Recalculate capacity overflow
@@ -251,14 +259,7 @@ export default function SprintPlanning({ sprintConfig, teamMembers }: SprintPlan
                       {sprint.endDate ? format(sprint.endDate, 'MMM dd, yyyy') : '-'}
                     </TableCell>
                     <TableCell>{sprint.teamCapacity}</TableCell>
-                    <TableCell>
-                      {sprint.adjustedCapacityPoints} 
-                      {sprint.adjustedCapacityPoints < sprint.teamCapacityPoints && (
-                        <span className="text-red-500 ml-1">
-                          (-{sprint.teamCapacityPoints - sprint.adjustedCapacityPoints})
-                        </span>
-                      )}
-                    </TableCell>
+                    <TableCell>{sprint.adjustedCapacityPoints}</TableCell>
                     <TableCell>
                       <Input
                         type="number"

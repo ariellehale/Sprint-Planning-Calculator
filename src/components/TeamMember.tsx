@@ -21,6 +21,7 @@ interface TeamMemberProps {
   onRemove: (id: string) => void;
   storyPointMappings: Record<number, number>;
   sprintConfig: { sprints: number; sprintLength: number; velocity?: number };
+  isNew?: boolean;
 }
 
 export default function TeamMember({ 
@@ -28,12 +29,13 @@ export default function TeamMember({
   onChange, 
   onRemove, 
   storyPointMappings,
-  sprintConfig 
+  sprintConfig,
+  isNew = false
 }: TeamMemberProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState(member.name);
   const [tempWeeklyCapacity, setTempWeeklyCapacity] = useState(member.weeklyCapacity.toString());
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(isNew);
 
   // Initialize sprint story points if not already present
   if (!member.sprintStoryPoints) {
@@ -86,7 +88,7 @@ export default function TeamMember({
   // Calculate capacity metrics
   const sprintCapacity = member.weeklyCapacity * sprintConfig.sprintLength;
   const totalSprintCapacity = sprintCapacity * sprintConfig.sprints;
-  const velocity = sprintConfig.velocity || 4; // Default to 4 hours per point if not provided
+  const velocity = sprintConfig.velocity || 2; // Default to 2 hours per point
   
   // Calculate points from hours
   const weeklyCapacityPoints = Math.floor(member.weeklyCapacity / velocity);
@@ -125,6 +127,14 @@ export default function TeamMember({
               <h3 className="font-bold text-lg">{member.name}</h3>
             </div>
             <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="bg-pink-50 hover:bg-pink-100 text-pink-600"
+                onClick={() => setIsOpen(!isOpen)}
+              >
+                {isOpen ? "Collapse" : "Expand"}
+              </Button>
               <Button size="sm" variant="outline" onClick={handleEditToggle}>
                 Edit
               </Button>
@@ -232,4 +242,3 @@ export default function TeamMember({
     </Card>
   );
 }
-

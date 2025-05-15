@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -23,7 +22,7 @@ export default function SprintConfig({ onConfigChange }: SprintConfigProps) {
   const [sprintLength, setSprintLength] = useState<number>(2);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [velocity, setVelocity] = useState<number>(4); // Default to 4 hours per point
+  const [velocity, setVelocity] = useState<number>(2); // Changed to 2 hours per point
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
 
   // Fixed: Added proper dependency array and prevent infinite loop

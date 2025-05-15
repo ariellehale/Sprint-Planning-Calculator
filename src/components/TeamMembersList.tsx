@@ -23,16 +23,19 @@ export default function TeamMembersList({
   onTeamMembersChange
 }: TeamMembersListProps) {
   const [teamMembers, setTeamMembers] = useState<TeamMemberData[]>([]);
+  const [lastAddedId, setLastAddedId] = useState<string | null>(null);
 
   const addTeamMember = () => {
+    const newMemberId = uuidv4();
     const newMember: TeamMemberData = {
-      id: uuidv4(),
+      id: newMemberId,
       name: `Team Member ${teamMembers.length + 1}`,
       weeklyCapacity: 30,
       assignedStoryPoints: {},
     };
     const updatedMembers = [...teamMembers, newMember];
     setTeamMembers(updatedMembers);
+    setLastAddedId(newMemberId); // Track the last added member ID
     onTeamMembersChange(updatedMembers);
   };
 
@@ -47,6 +50,9 @@ export default function TeamMembersList({
   const removeTeamMember = (id: string) => {
     const updatedMembers = teamMembers.filter((member) => member.id !== id);
     setTeamMembers(updatedMembers);
+    if (id === lastAddedId) {
+      setLastAddedId(null);
+    }
     onTeamMembersChange(updatedMembers);
   };
 
@@ -74,6 +80,7 @@ export default function TeamMembersList({
               onRemove={removeTeamMember}
               storyPointMappings={storyPointMappings}
               sprintConfig={sprintConfig}
+              isNew={member.id === lastAddedId}
             />
           ))
         )}
