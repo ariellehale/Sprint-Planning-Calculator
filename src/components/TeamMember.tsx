@@ -53,9 +53,8 @@ export default function TeamMember({
         weeklyCapacity: Math.max(0, parseInt(tempWeeklyCapacity) || 0),
       });
       
-      // After saving, close the editing mode and collapse the section
+      // After saving, close the editing mode but keep the section open
       setIsEditing(false);
-      setIsOpen(false);
     } else {
       // Open the collapsible when editing
       setIsOpen(true);
@@ -112,7 +111,10 @@ export default function TeamMember({
       <CardContent className="p-4">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <div className="flex justify-between items-center">
-            <div className="flex items-center">
+            <div 
+              className="flex items-center cursor-pointer" 
+              onClick={() => setIsOpen(!isOpen)}
+            >
               <h3 className="font-bold text-lg">{member.name}</h3>
             </div>
             <div className="flex space-x-2">
@@ -120,7 +122,10 @@ export default function TeamMember({
                 <>
                   <div 
                     className="cursor-pointer hover:text-blue-600"
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => {
+                      setIsOpen(true);
+                      setIsEditing(true);
+                    }}
                   >
                     Edit
                   </div>
