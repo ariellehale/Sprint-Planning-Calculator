@@ -1,8 +1,6 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
 import { SprintPointsEditor } from "./SprintPointsEditor";
 import { CapacityMetrics } from "./CapacityMetrics";
 import { TeamMemberData } from "../types/TeamMemberTypes";
@@ -20,8 +18,6 @@ interface TeamMemberEditFormProps {
   onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onCapacityChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSprintPointsChange: (e: React.ChangeEvent<HTMLInputElement>, sprintNumber: number) => void;
-  onSave: () => void;
-  onCancel: () => void;
 }
 
 export function TeamMemberEditForm({
@@ -36,12 +32,10 @@ export function TeamMemberEditForm({
   statusColor,
   onNameChange,
   onCapacityChange,
-  onSprintPointsChange,
-  onSave,
-  onCancel
+  onSprintPointsChange
 }: TeamMemberEditFormProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full mb-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-4">
       <div>
         <Label htmlFor={`name-${member.id}`}>
           Team Member's Name
@@ -51,6 +45,7 @@ export function TeamMemberEditForm({
           placeholder="Add team member's name here"
           value={tempName}
           onChange={onNameChange}
+          className="mt-1"
         />
       </div>
       <div>
@@ -64,10 +59,11 @@ export function TeamMemberEditForm({
           value={tempWeeklyCapacity}
           onChange={onCapacityChange}
           min={0}
+          className="mt-1"
         />
       </div>
 
-      <div className="col-span-full">
+      <div className="col-span-full mt-2">
         <SprintPointsEditor 
           member={member} 
           sprints={sprintConfig.sprints} 
@@ -75,7 +71,7 @@ export function TeamMemberEditForm({
         />
       </div>
 
-      <div className="col-span-full">
+      <div className="col-span-full mt-2">
         <CapacityMetrics 
           totalSprintCapacity={totalSprintCapacity}
           totalCapacityPoints={totalCapacityPoints}
@@ -83,15 +79,6 @@ export function TeamMemberEditForm({
           capacityRemaining={capacityRemaining}
           statusColor={statusColor}
         />
-      </div>
-
-      <div className="col-span-full flex justify-end space-x-2 mt-2">
-        <Button size="sm" variant="outline" onClick={onCancel}>
-          <X className="h-4 w-4 mr-1" /> Cancel
-        </Button>
-        <Button size="sm" onClick={onSave}>
-          <Check className="h-4 w-4 mr-1" /> Save
-        </Button>
       </div>
     </div>
   );
