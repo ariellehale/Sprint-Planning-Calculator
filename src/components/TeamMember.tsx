@@ -1,18 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { Check, Minimize, Expand, X } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-
-export interface TeamMemberData {
-  id: string;
-  name: string;
-  weeklyCapacity: number;
-  assignedStoryPoints: Record<string, number>;
-  sprintStoryPoints?: Record<number, number>; // Points assigned per sprint
-}
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { TeamMemberEditForm } from "./team/TeamMemberEditForm";
+import { TeamMemberView } from "./team/TeamMemberView";
+import { TeamMemberData } from "./types/TeamMemberTypes";
 
 interface TeamMemberProps {
   member: TeamMemberData;
@@ -162,141 +154,35 @@ export default function TeamMember({
 
           <CollapsibleContent className="mt-4 space-y-4">
             {isEditing ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full mb-4">
-                <div>
-                  <Label htmlFor={`name-${member.id}`}>
-                    Team Member's Name
-                  </Label>
-                  <Input
-                    id={`name-${member.id}`}
-                    placeholder="Add team member's name here"
-                    value={tempName}
-                    onChange={handleNameChange}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`capacity-${member.id}`}>
-                    Available Working Hours per Week
-                  </Label>
-                  <Input
-                    id={`capacity-${member.id}`}
-                    type="number"
-                    placeholder="Insert working hours per week here"
-                    value={tempWeeklyCapacity}
-                    onChange={handleCapacityChange}
-                    min={0}
-                  />
-                </div>
-
-                {/* Sprint-specific story points assignment */}
-                <div className="col-span-full border rounded-md p-3">
-                  <h4 className="font-medium text-sm mb-2">Story Points per Sprint</h4>
-                  <div className="flex flex-wrap gap-3">
-                    {Array.from({ length: sprintConfig.sprints }, (_, i) => i + 1).map((sprintNumber) => (
-                      <div key={`sprint-${sprintNumber}`} className="flex items-center space-x-2">
-                        <Label htmlFor={`sprint-${sprintNumber}-${member.id}`} className="whitespace-nowrap">
-                          Sprint {sprintNumber}:
-                        </Label>
-                        <Input
-                          id={`sprint-${sprintNumber}-${member.id}`}
-                          type="number"
-                          min={0}
-                          value={(member.sprintStoryPoints?.[sprintNumber] || 0)}
-                          onChange={(e) => handleSprintPointsChange(e, sprintNumber)}
-                          className="h-8 w-16"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="col-span-full border rounded-md p-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Total Sprint Capacity:</span>
-                    <span className="font-medium">{totalSprintCapacity} hours / {totalCapacityPoints} points</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Assigned Story Points:</span>
-                    <span className="font-medium">{totalAssignedPoints} points ({totalAssignedPoints * velocity} hours)</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Capacity Remaining:</span>
-                    <span className="font-medium">{capacityRemaining} hours</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-gray-200 mt-2">
-                    <div 
-                      className={`h-full rounded-full ${statusColor}`}
-                      style={{ 
-                        width: `${Math.max(0, Math.min(100, (capacityRemaining / totalSprintCapacity) * 100))}%` 
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="col-span-full flex justify-end space-x-2 mt-2">
-                  <Button size="sm" variant="outline" onClick={handleCancel}>
-                    <X className="h-4 w-4 mr-1" /> Cancel
-                  </Button>
-                  <Button size="sm" onClick={handleEditToggle}>
-                    <Check className="h-4 w-4 mr-1" /> Save
-                  </Button>
-                </div>
-              </div>
+              <TeamMemberEditForm
+                member={member}
+                tempName={tempName}
+                tempWeeklyCapacity={tempWeeklyCapacity}
+                sprintConfig={sprintConfig}
+                totalSprintCapacity={totalSprintCapacity}
+                totalCapacityPoints={totalCapacityPoints}
+                totalAssignedPoints={totalAssignedPoints}
+                capacityRemaining={capacityRemaining}
+                statusColor={statusColor}
+                onNameChange={handleNameChange}
+                onCapacityChange={handleCapacityChange}
+                onSprintPointsChange={handleSprintPointsChange}
+                onSave={handleEditToggle}
+                onCancel={handleCancel}
+              />
             ) : (
-              <div className="text-muted-foreground space-y-1">
-                <p>Weekly Capacity: {member.weeklyCapacity} hours / {weeklyCapacityPoints} points</p>
-                <p>Sprint Capacity: {sprintCapacity} hours / {sprintCapacityPoints} points</p>
-                <p>Total Capacity: {totalSprintCapacity} hours / {totalCapacityPoints} points</p>
-              </div>
-            )}
-
-            {!isEditing && (
-              <>
-                {/* Sprint-specific story points assignment */}
-                <div className="border rounded-md p-3">
-                  <h4 className="font-medium text-sm mb-2">Story Points per Sprint</h4>
-                  <div className="flex flex-wrap gap-3">
-                    {Array.from({ length: sprintConfig.sprints }, (_, i) => i + 1).map((sprintNumber) => (
-                      <div key={`sprint-${sprintNumber}`} className="flex items-center space-x-2">
-                        <Label htmlFor={`sprint-${sprintNumber}-${member.id}`} className="whitespace-nowrap">
-                          Sprint {sprintNumber}:
-                        </Label>
-                        <Input
-                          id={`sprint-${sprintNumber}-${member.id}`}
-                          type="number"
-                          min={0}
-                          value={(member.sprintStoryPoints?.[sprintNumber] || 0)}
-                          onChange={(e) => handleSprintPointsChange(e, sprintNumber)}
-                          className="h-8 w-16"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="border rounded-md p-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Total Sprint Capacity:</span>
-                    <span className="font-medium">{totalSprintCapacity} hours / {totalCapacityPoints} points</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Assigned Story Points:</span>
-                    <span className="font-medium">{totalAssignedPoints} points ({totalAssignedPoints * velocity} hours)</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Capacity Remaining:</span>
-                    <span className="font-medium">{capacityRemaining} hours</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-gray-200 mt-2">
-                    <div 
-                      className={`h-full rounded-full ${statusColor}`}
-                      style={{ 
-                        width: `${Math.max(0, Math.min(100, (capacityRemaining / totalSprintCapacity) * 100))}%` 
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </>
+              <TeamMemberView
+                member={member}
+                weeklyCapacityPoints={weeklyCapacityPoints}
+                sprintCapacityPoints={sprintCapacityPoints}
+                totalCapacityPoints={totalCapacityPoints}
+                totalSprintCapacity={totalSprintCapacity}
+                totalAssignedPoints={totalAssignedPoints}
+                capacityRemaining={capacityRemaining}
+                statusColor={statusColor}
+                sprintConfig={sprintConfig}
+                onSprintPointsChange={handleSprintPointsChange}
+              />
             )}
           </CollapsibleContent>
         </Collapsible>
