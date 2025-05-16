@@ -39,6 +39,9 @@ export function TeamMemberEditForm({
   onDelete,
   isEditing
 }: TeamMemberEditFormProps) {
+  const velocity = sprintConfig.velocity || 2;
+  const weeklyPointsCapacity = Math.floor(Number(tempWeeklyCapacity) / velocity);
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-4">
       <div>
@@ -66,6 +69,9 @@ export function TeamMemberEditForm({
           min={0}
           className="mt-1"
         />
+        <div className="text-xs text-muted-foreground mt-1">
+          Available Points Per Week: {weeklyPointsCapacity} points
+        </div>
       </div>
 
       <div className="col-span-full mt-2">

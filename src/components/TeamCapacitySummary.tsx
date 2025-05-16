@@ -104,7 +104,7 @@ export default function TeamCapacitySummary({
                 <TableHead className="text-right">Total Capacity (Hours)</TableHead>
                 <TableHead className="text-right">Total Capacity (Points)</TableHead>
                 <TableHead className="text-right">Assigned Points</TableHead>
-                <TableHead className="text-right">Remaining Capacity</TableHead>
+                <TableHead className="text-right">Remaining Points</TableHead>
                 <TableHead className="text-right">Utilization</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>

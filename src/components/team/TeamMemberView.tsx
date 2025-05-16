@@ -48,9 +48,9 @@ export function TeamMemberView({
       </div>
       
       <div className="text-muted-foreground space-y-1 mt-2">
-        <p>Weekly Capacity: {member.weeklyCapacity} hours / {weeklyCapacityPoints} points</p>
-        <p>Sprint Capacity: {member.weeklyCapacity * sprintConfig.sprintLength} hours / {sprintCapacityPoints} points</p>
-        <p>Total Capacity: {totalSprintCapacity} hours / {totalCapacityPoints} points</p>
+        <p>Weekly Capacity: {weeklyCapacityPoints} points / {member.weeklyCapacity} hours</p>
+        <p>Sprint Capacity: {sprintCapacityPoints} points / {member.weeklyCapacity * sprintConfig.sprintLength} hours</p>
+        <p>Total Capacity: {totalCapacityPoints} points / {totalSprintCapacity} hours</p>
       </div>
 
       {/* The rest of the content is now hidden from the collapsed view */}

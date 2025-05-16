@@ -15,7 +15,7 @@ export function DeleteTeamMemberButton({ onDelete, isEditing }: DeleteTeamMember
       <Button 
         variant="destructive" 
         onClick={onDelete}
-        className="bg-[#ea384c] hover:bg-[#d32f2f] text-white"
+        className="bg-[#ea384c] hover:bg-[#d32f2f] text-white justify-start w-auto"
       >
         <Trash2 className="h-4 w-4 mr-1" /> Delete Team Member
       </Button>
