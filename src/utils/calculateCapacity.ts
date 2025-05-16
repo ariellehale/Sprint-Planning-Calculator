@@ -28,20 +28,25 @@ export function calculateCapacity(member: TeamMemberData, config: CapacityConfig
   
   // Calculate points from hours
   const weeklyCapacityPoints = Math.floor(member.weeklyCapacity / velocity);
-  const sprintCapacityPoints = Math.floor(sprintCapacity / velocity);
-  const totalCapacityPoints = Math.floor(totalSprintCapacity / velocity);
+  const sprintCapacityPoints = weeklyCapacityPoints * config.sprintLength;
+  const totalCapacityPoints = sprintCapacityPoints * config.sprints;
   
   // Calculate total points from sprint assignments
   const totalAssignedPoints = Object.values(member.sprintStoryPoints || {}).reduce((sum, points) => sum + points, 0);
   
+  // Calculate capacity remaining in hours
   const capacityRemaining = totalSprintCapacity - (totalAssignedPoints * velocity);
   
   // Determine status color based on capacity remaining
   let statusColor = "bg-capacity-high";
-  if (capacityRemaining < 20 && capacityRemaining >= 5) {
-    statusColor = "bg-capacity-medium";
-  } else if (capacityRemaining < 5) {
+  const utilizationPercentage = totalCapacityPoints > 0
+    ? (totalAssignedPoints / totalCapacityPoints) * 100
+    : 0;
+    
+  if (utilizationPercentage >= 85) {
     statusColor = "bg-capacity-low";
+  } else if (utilizationPercentage >= 60) {
+    statusColor = "bg-capacity-medium";
   }
 
   return {

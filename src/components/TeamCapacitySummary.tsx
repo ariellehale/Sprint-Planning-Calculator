@@ -43,7 +43,8 @@ export default function TeamCapacitySummary({
     totalHoursRequired += memberHoursRequired;
     
     const totalCapacityPoints = Math.floor(totalSprintCapacity / velocity);
-    const capacityRemaining = totalCapacityPoints - totalAssignedPoints;
+    const capacityRemaining = totalSprintCapacity - memberHoursRequired;
+    const remainingPoints = totalCapacityPoints - totalAssignedPoints;
     
     let statusColor = "bg-green-500"; // Good: Under 60% utilization
     const utilizationPercentage = totalCapacityPoints > 0 
@@ -64,6 +65,7 @@ export default function TeamCapacitySummary({
       assignedPoints: totalAssignedPoints,
       hoursRequired: memberHoursRequired,
       capacityRemaining,
+      remainingPoints,
       statusColor,
       utilizationPercentage
     };
@@ -71,7 +73,8 @@ export default function TeamCapacitySummary({
   
   const totalTeamCapacityPoints = Math.floor(totalTeamCapacity / velocity);
   const totalAssignedPoints = memberSummaries.reduce((sum: number, member: any) => sum + member.assignedPoints, 0);
-  const teamCapacityRemaining = totalTeamCapacityPoints - totalAssignedPoints;
+  const teamCapacityRemaining = totalTeamCapacity - totalHoursRequired;
+  const teamRemainingPoints = totalTeamCapacityPoints - totalAssignedPoints;
   const teamUtilizationPercentage = totalTeamCapacityPoints > 0 
     ? Math.min(100, Math.round((totalAssignedPoints / totalTeamCapacityPoints) * 100))
     : 0;
@@ -103,7 +106,7 @@ export default function TeamCapacitySummary({
                 <TableHead className="text-right">Weekly Hours</TableHead>
                 <TableHead className="text-right">Total Capacity (Hours)</TableHead>
                 <TableHead className="text-right">Total Capacity (Points)</TableHead>
-                <TableHead className="text-right">Assigned Points</TableHead>
+                <TableHead className="text-right">Total Story Points Assigned</TableHead>
                 <TableHead className="text-right">Remaining Points</TableHead>
                 <TableHead className="text-right">Utilization</TableHead>
                 <TableHead>Status</TableHead>
@@ -117,7 +120,7 @@ export default function TeamCapacitySummary({
                   <TableCell className="text-right">{summary.totalCapacity}</TableCell>
                   <TableCell className="text-right">{summary.totalCapacityPoints}</TableCell>
                   <TableCell className="text-right">{summary.assignedPoints}</TableCell>
-                  <TableCell className="text-right">{summary.capacityRemaining}</TableCell>
+                  <TableCell className="text-right">{summary.remainingPoints}</TableCell>
                   <TableCell className="text-right">{summary.utilizationPercentage}%</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
@@ -138,7 +141,7 @@ export default function TeamCapacitySummary({
                 <TableCell className="text-right">{totalTeamCapacity}</TableCell>
                 <TableCell className="text-right">{totalTeamCapacityPoints}</TableCell>
                 <TableCell className="text-right">{totalAssignedPoints}</TableCell>
-                <TableCell className="text-right">{teamCapacityRemaining}</TableCell>
+                <TableCell className="text-right">{teamRemainingPoints}</TableCell>
                 <TableCell className="text-right">{teamUtilizationPercentage}%</TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">

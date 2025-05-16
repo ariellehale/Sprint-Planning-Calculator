@@ -18,6 +18,7 @@ export function CapacityMetrics({
 }: CapacityMetricsProps) {
   // Calculate remaining points based on total points and assigned points
   const remainingPoints = totalCapacityPoints - totalAssignedPoints;
+  const assignedHours = totalAssignedPoints * 2;
   
   return (
     <div className="border rounded-md p-3 space-y-2">
@@ -26,8 +27,8 @@ export function CapacityMetrics({
         <span className="font-medium">{totalCapacityPoints} points / {totalSprintCapacity} hours</span>
       </div>
       <div className="flex justify-between text-sm">
-        <span>Assigned Story Points:</span>
-        <span className="font-medium">{totalAssignedPoints} points / {totalAssignedPoints * 2} hours</span>
+        <span>Total Story Points Assigned:</span>
+        <span className="font-medium">{totalAssignedPoints} points / {assignedHours} hours</span>
       </div>
       <div className="flex justify-between text-sm">
         <span>Capacity Remaining:</span>

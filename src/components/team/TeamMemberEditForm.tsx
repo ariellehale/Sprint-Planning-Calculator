@@ -5,6 +5,7 @@ import { SprintPointsEditor } from "./SprintPointsEditor";
 import { CapacityMetrics } from "./CapacityMetrics";
 import { DeleteTeamMemberButton } from "./DeleteTeamMemberButton";
 import { TeamMemberData } from "../types/TeamMemberTypes";
+import { useState, useEffect } from "react";
 
 interface TeamMemberEditFormProps {
   member: TeamMemberData;
@@ -40,7 +41,18 @@ export function TeamMemberEditForm({
   isEditing
 }: TeamMemberEditFormProps) {
   const velocity = sprintConfig.velocity || 2;
-  const weeklyPointsCapacity = Math.floor(Number(tempWeeklyCapacity) / velocity);
+  const [weeklyPointsCapacity, setWeeklyPointsCapacity] = useState(
+    Math.floor(Number(tempWeeklyCapacity) / velocity)
+  );
+  
+  // Update when weekly capacity changes
+  useEffect(() => {
+    setWeeklyPointsCapacity(Math.floor(Number(tempWeeklyCapacity) / velocity));
+  }, [tempWeeklyCapacity, velocity]);
+
+  const handlePointsCapacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWeeklyPointsCapacity(Number(e.target.value) || 0);
+  };
   
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-4">
@@ -56,21 +68,33 @@ export function TeamMemberEditForm({
           className="mt-1"
         />
       </div>
-      <div>
-        <Label htmlFor={`capacity-${member.id}`}>
-          Available Working Hours per Week
-        </Label>
-        <Input
-          id={`capacity-${member.id}`}
-          type="number"
-          placeholder="Insert working hours per week here"
-          value={tempWeeklyCapacity}
-          onChange={onCapacityChange}
-          min={0}
-          className="mt-1"
-        />
-        <div className="text-xs text-muted-foreground mt-1">
-          Available Points Per Week: {weeklyPointsCapacity} points
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={`capacity-${member.id}`}>
+            Available Working Hours per Week
+          </Label>
+          <Input
+            id={`capacity-${member.id}`}
+            type="number"
+            placeholder="Insert working hours per week here"
+            value={tempWeeklyCapacity}
+            onChange={onCapacityChange}
+            min={0}
+            className="mt-1"
+          />
+        </div>
+        <div>
+          <Label htmlFor={`points-capacity-${member.id}`}>
+            Available Points Per Week
+          </Label>
+          <Input
+            id={`points-capacity-${member.id}`}
+            type="number"
+            value={weeklyPointsCapacity}
+            onChange={handlePointsCapacityChange}
+            min={0}
+            className="mt-1"
+          />
         </div>
       </div>
 

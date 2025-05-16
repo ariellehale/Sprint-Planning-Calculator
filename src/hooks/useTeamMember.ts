@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { TeamMemberData } from "../components/types/TeamMemberTypes";
 
@@ -12,6 +13,9 @@ export function useTeamMember(
   const [tempWeeklyCapacity, setTempWeeklyCapacity] = useState(member.weeklyCapacity.toString());
   const [isOpen, setIsOpen] = useState(isNew);
   const [showFullContent, setShowFullContent] = useState(isNew || isEditing);
+  const [tempWeeklyPointsCapacity, setTempWeeklyPointsCapacity] = useState(
+    member.weeklyPointsCapacity?.toString() || Math.floor(member.weeklyCapacity / 2).toString()
+  );
 
   // When isNew changes, update editing state
   useEffect(() => {
@@ -30,6 +34,10 @@ export function useTeamMember(
     setTempWeeklyCapacity(e.target.value);
   };
 
+  const handlePointsCapacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTempWeeklyPointsCapacity(e.target.value);
+  };
+
   const handleEditToggle = () => {
     if (isEditing) {
       // Save changes
@@ -37,6 +45,7 @@ export function useTeamMember(
         ...member,
         name: tempName || "Team Member",
         weeklyCapacity: Math.max(0, parseInt(tempWeeklyCapacity) || 0),
+        weeklyPointsCapacity: Math.max(0, parseInt(tempWeeklyPointsCapacity) || 0),
       });
       
       // After saving, close the editing mode but keep the section open
@@ -53,6 +62,9 @@ export function useTeamMember(
   const handleCancel = () => {
     setTempName(member.name);
     setTempWeeklyCapacity(member.weeklyCapacity.toString());
+    setTempWeeklyPointsCapacity(
+      member.weeklyPointsCapacity?.toString() || Math.floor(member.weeklyCapacity / 2).toString()
+    );
     setIsEditing(false);
     setShowFullContent(false);
   };
@@ -82,10 +94,12 @@ export function useTeamMember(
     isEditing,
     tempName,
     tempWeeklyCapacity,
+    tempWeeklyPointsCapacity,
     isOpen,
     showFullContent,
     handleNameChange,
     handleCapacityChange,
+    handlePointsCapacityChange,
     handleEditToggle,
     handleCancel,
     handleEditClick,

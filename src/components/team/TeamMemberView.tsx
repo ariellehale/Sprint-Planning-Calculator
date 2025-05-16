@@ -3,8 +3,6 @@ import { SprintPointsEditor } from "./SprintPointsEditor";
 import { CapacityMetrics } from "./CapacityMetrics";
 import { TeamMemberData } from "../types/TeamMemberTypes";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
-import { useState } from "react";
 
 interface TeamMemberViewProps {
   member: TeamMemberData;
