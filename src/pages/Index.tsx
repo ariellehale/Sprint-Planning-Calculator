@@ -50,7 +50,7 @@ const Index = () => {
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white shadow-sm">
         <div className="container mx-auto py-6 px-4">
-          <h1 className="text-3xl font-bold text-capacity-default">Sprint Capacity Calculator</h1>
+          <h1 className="text-3xl font-bold text-capacity-default">Sprint Capacity Calculator by Arielle Hale</h1>
           <p className="text-muted-foreground mt-2">
             Plan your team's sprint capacity and workload distribution
           </p>
