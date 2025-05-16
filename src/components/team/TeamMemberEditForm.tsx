@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SprintPointsEditor } from "./SprintPointsEditor";
 import { CapacityMetrics } from "./CapacityMetrics";
+import { DeleteTeamMemberButton } from "./DeleteTeamMemberButton";
 import { TeamMemberData } from "../types/TeamMemberTypes";
 
 interface TeamMemberEditFormProps {
@@ -18,6 +19,8 @@ interface TeamMemberEditFormProps {
   onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onCapacityChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSprintPointsChange: (e: React.ChangeEvent<HTMLInputElement>, sprintNumber: number) => void;
+  onDelete: () => void;
+  isEditing: boolean;
 }
 
 export function TeamMemberEditForm({
@@ -32,7 +35,9 @@ export function TeamMemberEditForm({
   statusColor,
   onNameChange,
   onCapacityChange,
-  onSprintPointsChange
+  onSprintPointsChange,
+  onDelete,
+  isEditing
 }: TeamMemberEditFormProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-4">
@@ -79,6 +84,10 @@ export function TeamMemberEditForm({
           capacityRemaining={capacityRemaining}
           statusColor={statusColor}
         />
+      </div>
+      
+      <div className="col-span-full">
+        <DeleteTeamMemberButton onDelete={onDelete} isEditing={isEditing} />
       </div>
     </div>
   );

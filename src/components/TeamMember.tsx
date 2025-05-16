@@ -5,12 +5,12 @@ import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { TeamMemberEditForm } from "./team/TeamMemberEditForm";
 import { TeamMemberView } from "./team/TeamMemberView";
 import { TeamMemberData } from "./types/TeamMemberTypes";
-import { SprintPointsEditor } from "./team/SprintPointsEditor";
-import { CapacityMetrics } from "./team/CapacityMetrics";
 import { TeamMemberActions } from "./team/TeamMemberActions";
 import { TeamMemberHeader } from "./team/TeamMemberHeader";
 import { useTeamMember } from "../hooks/useTeamMember";
 import { calculateCapacity } from "../utils/calculateCapacity";
+import { SprintPointsEditor } from "./team/SprintPointsEditor";
+import { CapacityMetrics } from "./team/CapacityMetrics";
 
 interface TeamMemberProps {
   member: TeamMemberData;
@@ -63,7 +63,6 @@ export default function TeamMember({
                 isEditing={isEditing}
                 onSave={handleEditToggle}
                 onCancel={handleCancel}
-                onDelete={handleDelete}
               />
             </>
           ) : (
@@ -97,6 +96,8 @@ export default function TeamMember({
                 onNameChange={handleNameChange}
                 onCapacityChange={handleCapacityChange}
                 onSprintPointsChange={handleSprintPointsChange}
+                onDelete={handleDelete}
+                isEditing={isEditing}
               />
             )}
             {!isEditing && showFullContent && (

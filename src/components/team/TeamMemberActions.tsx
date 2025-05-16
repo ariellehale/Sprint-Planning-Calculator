@@ -1,12 +1,12 @@
 
 import { Button } from "@/components/ui/button";
-import { Save, X, Trash2 } from "lucide-react";
+import { Save, X } from "lucide-react";
 
 interface TeamMemberActionsProps {
   isEditing: boolean;
   onSave: () => void;
   onCancel: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 }
 
 export function TeamMemberActions({ 
@@ -18,16 +18,7 @@ export function TeamMemberActions({
   if (!isEditing) return null;
   
   return (
-    <div className="flex justify-between items-center mb-4">
-      <div>
-        <Button 
-          variant="destructive" 
-          onClick={onDelete}
-          className="bg-[#ea384c] hover:bg-[#d32f2f] text-white"
-        >
-          <Trash2 className="h-4 w-4 mr-1" /> Delete Team Member
-        </Button>
-      </div>
+    <div className="flex justify-end items-center mb-4">
       <div className="flex space-x-2">
         <Button 
           size="sm" 
